@@ -5,14 +5,18 @@ import '../../core/theme/app_theme.dart';
 import '../../data/database/app_database.dart';
 import '../../providers/overlay_provider.dart';
 import '../../providers/repository_providers.dart';
+import '../../services/bubble_channel.dart';
 import '../../services/process_text_channel.dart';
 import '../../services/variable_detector.dart';
 import 'widgets/overlay_search_bar.dart';
 import 'widgets/overlay_prompt_row.dart';
 import 'widgets/variable_fill_sheet.dart';
 
+enum OverlayMode { processText, bubble }
+
 class OverlayScreen extends ConsumerStatefulWidget {
-  const OverlayScreen({super.key});
+  const OverlayScreen({super.key, this.mode = OverlayMode.processText});
+  final OverlayMode mode;
 
   @override
   ConsumerState<OverlayScreen> createState() => _OverlayScreenState();
@@ -30,17 +34,19 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
   }
 
   Future<void> _init() async {
-    final intentData = await ProcessTextChannel.getIntentData();
-    if (intentData != null && mounted) {
-      ref.read(overlayIntentProvider.notifier).state = intentData;
-    }
-    final callingPkg = intentData?.callingPackage ?? '';
-    final ranked = await ref.read(usageRepositoryProvider).getRankedPrompts(callingPkg);
-    if (mounted) {
-      setState(() {
-        _prompts = ranked;
-        _loading = false;
-      });
+    if (widget.mode == OverlayMode.processText) {
+      final intentData = await ProcessTextChannel.getIntentData();
+      if (intentData != null && mounted) {
+        ref.read(overlayIntentProvider.notifier).state = intentData;
+      }
+      final callingPkg = intentData?.callingPackage ?? '';
+      final ranked =
+          await ref.read(usageRepositoryProvider).getRankedPrompts(callingPkg);
+      if (mounted) setState(() { _prompts = ranked; _loading = false; });
+    } else {
+      final ranked =
+          await ref.read(usageRepositoryProvider).getRankedPrompts('');
+      if (mounted) setState(() { _prompts = ranked; _loading = false; });
     }
   }
 
@@ -70,13 +76,17 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
   }
 
   Future<void> _insertAndClose(String text, int promptId) async {
-    final intentData = ref.read(overlayIntentProvider);
-    if (intentData != null) {
-      await ref
-          .read(usageRepositoryProvider)
-          .recordUsage(promptId, intentData.callingPackage);
+    if (widget.mode == OverlayMode.processText) {
+      final intentData = ref.read(overlayIntentProvider);
+      if (intentData != null) {
+        await ref
+            .read(usageRepositoryProvider)
+            .recordUsage(promptId, intentData.callingPackage);
+      }
+      await ProcessTextChannel.setResult(text);
+    } else {
+      await BubbleChannel.insertText(text);
     }
-    await ProcessTextChannel.setResult(text);
   }
 
   List<Prompt> get _filtered {
@@ -98,7 +108,13 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
         child: Stack(
           children: [
             GestureDetector(
-              onTap: () => ProcessTextChannel.cancel(),
+              onTap: () {
+                if (widget.mode == OverlayMode.processText) {
+                  ProcessTextChannel.cancel();
+                } else {
+                  BubbleChannel.cancel();
+                }
+              },
               child: Container(color: Colors.black54),
             ),
             Align(
