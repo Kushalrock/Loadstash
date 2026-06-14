@@ -34,20 +34,16 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
   }
 
   Future<void> _init() async {
+    String callingPkg = '';
     if (widget.mode == OverlayMode.processText) {
       final intentData = await ProcessTextChannel.getIntentData();
       if (intentData != null && mounted) {
         ref.read(overlayIntentProvider.notifier).state = intentData;
+        callingPkg = intentData.callingPackage;
       }
-      final callingPkg = intentData?.callingPackage ?? '';
-      final ranked =
-          await ref.read(usageRepositoryProvider).getRankedPrompts(callingPkg);
-      if (mounted) setState(() { _prompts = ranked; _loading = false; });
-    } else {
-      final ranked =
-          await ref.read(usageRepositoryProvider).getRankedPrompts('');
-      if (mounted) setState(() { _prompts = ranked; _loading = false; });
     }
+    final ranked = await ref.read(usageRepositoryProvider).getRankedPrompts(callingPkg);
+    if (mounted) setState(() { _prompts = ranked; _loading = false; });
   }
 
   Future<void> _onPromptTapped(Prompt prompt) async {
