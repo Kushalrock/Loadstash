@@ -90,8 +90,19 @@ class BubbleService : Service() {
             y = getScreenHeight() / 2
         }
 
-        windowManager.addView(bubbleView, params)
-        bubbleView.visibility = android.view.View.GONE
+        try {
+            windowManager.addView(bubbleView, params)
+            bubbleView.visibility = android.view.View.GONE
+        } catch (e: Exception) {
+            // BadTokenException if overlay permission isn't effective yet.
+            // Retry once after 500ms — the permission usually settles by then.
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                try {
+                    windowManager.addView(bubbleView, params)
+                    bubbleView.visibility = android.view.View.GONE
+                } catch (_: Exception) {}
+            }, 500)
+        }
 
         bubbleView.setOnTouchListener { _, event ->
             handleTouch(event)

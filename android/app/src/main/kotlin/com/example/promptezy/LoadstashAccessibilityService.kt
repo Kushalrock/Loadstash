@@ -1,6 +1,7 @@
 package com.example.promptezy
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.os.Handler
 import android.os.Looper
 import android.view.accessibility.AccessibilityEvent
@@ -23,12 +24,28 @@ class LoadstashAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        // Reinforce FLAG_RETRIEVE_INTERACTIVE_WINDOWS programmatically — the XML
+        // attribute alone is not always honoured on Android 12+ builds.
+        try {
+            val info = serviceInfo ?: AccessibilityServiceInfo()
+            info.flags = info.flags or AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS
+            info.eventTypes = AccessibilityEvent.TYPE_WINDOWS_CHANGED or
+                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+            serviceInfo = info
+        } catch (_: Exception) {}
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        if (event.eventType != AccessibilityEvent.TYPE_WINDOWS_CHANGED) return
+        if (event.eventType != AccessibilityEvent.TYPE_WINDOWS_CHANGED &&
+            event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        checkKeyboardVisibility()
+    }
+
+    private fun checkKeyboardVisibility() {
         try {
-            val hasKeyboard = windows?.any { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD } ?: false
+            val hasKeyboard = windows?.any {
+                it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD
+            } ?: false
             if (hasKeyboard && !keyboardVisible) {
                 keyboardVisible = true
                 BubbleService.show()
