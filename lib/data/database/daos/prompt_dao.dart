@@ -26,12 +26,15 @@ class PromptDao extends DatabaseAccessor<AppDatabase> with _$PromptDaoMixin {
       (delete(prompts)..where((t) => t.id.equals(id))).go();
 
   Future<List<PromptVariable>> getVariablesForPrompt(int promptId) =>
-      (select(promptVariables)..where((t) => t.promptId.equals(promptId))).get();
+      (select(promptVariables)
+            ..where((t) => t.promptId.equals(promptId))
+            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+          .get();
 
   Future<void> replaceVariables(int promptId, List<PromptVariablesCompanion> vars) async {
     await (delete(promptVariables)..where((t) => t.promptId.equals(promptId))).go();
-    for (final v in vars) {
-      await into(promptVariables).insert(v);
+    if (vars.isNotEmpty) {
+      await batch((b) => b.insertAll(promptVariables, vars));
     }
   }
 
