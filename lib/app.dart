@@ -8,8 +8,15 @@ import 'features/overlay/overlay_screen.dart';
 import 'features/editor/editor_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
+import 'services/preferences_service.dart';
 
 final _router = GoRouter(
+  redirect: (context, state) async {
+    if (state.matchedLocation == '/overlay') return null;
+    final done = await PreferencesService.isOnboardingDone();
+    if (!done) return '/onboarding';
+    return null;
+  },
   routes: [
     GoRoute(path: '/overlay', builder: (_, __) => const OverlayScreen()),
     GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
