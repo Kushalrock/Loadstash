@@ -19,10 +19,18 @@ class ProcessTextChannel {
   }
 
   static Future<void> setResult(String text) async {
-    await _channel.invokeMethod('setResult', {'text': text});
+    try {
+      await _channel.invokeMethod('setResult', {'text': text});
+    } on PlatformException {
+      // Overlay closed or engine not ready — safe to ignore
+    }
   }
 
   static Future<void> cancel() async {
-    await _channel.invokeMethod('cancel');
+    try {
+      await _channel.invokeMethod('cancel');
+    } on PlatformException {
+      // Overlay closed or engine not ready — safe to ignore
+    }
   }
 }
