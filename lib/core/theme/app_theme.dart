@@ -77,5 +77,56 @@ abstract final class AppTheme {
           onPrimary: Colors.white,
           onSurface: AppColors.textPrimaryLight,
         ),
+        textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
+        cardTheme: const CardThemeData(
+          color: AppColors.surfaceLight,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(14)),
+            side: BorderSide(color: AppColors.borderLight),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AppColors.surfaceLight,
+          hintStyle: const TextStyle(color: Color(0xFFA0A0A0)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.borderLight),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.borderLight),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.accentLight, width: 1.5),
+          ),
+        ),
+        chipTheme: ChipThemeData(
+          backgroundColor: AppColors.surfaceLight,
+          selectedColor: AppColors.accentLight.withOpacity(0.14),
+          labelStyle: const TextStyle(color: AppColors.textPrimaryLight, fontSize: 12),
+          side: const BorderSide(color: AppColors.borderLight),
+          shape: const StadiumBorder(),
+        ),
+        dividerTheme: const DividerThemeData(
+          color: AppColors.borderLight,
+          thickness: 1,
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: AppColors.surfaceLight,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.accentLight,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            minimumSize: const Size(double.infinity, 52),
+          ),
+        ),
       );
 }
