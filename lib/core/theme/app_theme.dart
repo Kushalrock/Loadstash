@@ -75,6 +75,7 @@ abstract final class AppTheme {
           surface: AppColors.bgBaseLight,
           primary: AppColors.accentLight,
           onPrimary: Colors.white,
+          secondary: AppColors.accentLightTint,
           onSurface: AppColors.textPrimaryLight,
         ),
         textTheme: GoogleFonts.interTextTheme(ThemeData.light().textTheme),
@@ -89,7 +90,7 @@ abstract final class AppTheme {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: AppColors.surfaceLight,
-          hintStyle: const TextStyle(color: Color(0xFFA0A0A0)),
+          hintStyle: const TextStyle(color: AppColors.textTertiaryLight),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.borderLight),
@@ -105,7 +106,7 @@ abstract final class AppTheme {
         ),
         chipTheme: ChipThemeData(
           backgroundColor: AppColors.surfaceLight,
-          selectedColor: AppColors.accentLight.withOpacity(0.14),
+          selectedColor: AppColors.accentLightTint,
           labelStyle: const TextStyle(color: AppColors.textPrimaryLight, fontSize: 12),
           side: const BorderSide(color: AppColors.borderLight),
           shape: const StadiumBorder(),

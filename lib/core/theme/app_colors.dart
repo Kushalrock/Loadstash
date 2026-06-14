@@ -17,8 +17,10 @@ abstract final class AppColors {
   static const bgBaseLight = Color(0xFFFAFAF8);
   static const surfaceLight = Color(0xFFFFFFFF);
   static const textPrimaryLight = Color(0xFF1A1B1E);
+  static const textTertiaryLight = Color(0xFFA0A0A0);
   static const borderLight = Color(0x14000000);
   static const accentLight = Color(0xFF6F5EE0);
+  static const accentLightTint = Color(0x236F5EE0);
 
   // Model tag colors
   static const modelClaude = Color(0xFFC98A5E);
