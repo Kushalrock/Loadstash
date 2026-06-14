@@ -13,12 +13,17 @@ import 'services/preferences_service.dart';
 final _router = GoRouter(
   redirect: (context, state) async {
     if (state.matchedLocation == '/overlay') return null;
+    if (state.matchedLocation == '/bubble-overlay') return null;
     final done = await PreferencesService.isOnboardingDone();
     if (!done) return '/onboarding';
     return null;
   },
   routes: [
     GoRoute(path: '/overlay', builder: (_, __) => const OverlayScreen()),
+    GoRoute(
+      path: '/bubble-overlay',
+      builder: (_, __) => const OverlayScreen(mode: OverlayMode.bubble),
+    ),
     GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
     ShellRoute(
       builder: (context, state, child) => AppShell(child: child),
