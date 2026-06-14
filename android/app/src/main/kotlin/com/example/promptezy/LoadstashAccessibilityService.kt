@@ -9,6 +9,7 @@ import android.view.accessibility.AccessibilityWindowInfo
 class LoadstashAccessibilityService : AccessibilityService() {
 
     companion object {
+        @Volatile
         var instance: LoadstashAccessibilityService? = null
 
         fun pasteAfterDelay() {
@@ -26,22 +27,23 @@ class LoadstashAccessibilityService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOWS_CHANGED) return
-
-        val hasKeyboard = windows.any { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD }
-
-        if (hasKeyboard && !keyboardVisible) {
-            keyboardVisible = true
-            BubbleService.show()
-        } else if (!hasKeyboard && keyboardVisible) {
-            keyboardVisible = false
-            BubbleService.hide()
-        }
+        try {
+            val hasKeyboard = windows?.any { it.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD } ?: false
+            if (hasKeyboard && !keyboardVisible) {
+                keyboardVisible = true
+                BubbleService.show()
+            } else if (!hasKeyboard && keyboardVisible) {
+                keyboardVisible = false
+                BubbleService.hide()
+            }
+        } catch (_: Exception) {}
     }
 
     override fun onInterrupt() {}
 
     override fun onDestroy() {
         super.onDestroy()
+        handler.removeCallbacksAndMessages(null)
         instance = null
     }
 
