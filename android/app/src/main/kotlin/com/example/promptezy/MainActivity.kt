@@ -27,7 +27,9 @@ class MainActivity : FlutterActivity() {
                         result.success(BubbleService.instance != null)
 
                     "startBubble" -> {
-                        startForegroundService(Intent(this, BubbleService::class.java))
+                        if (BubbleService.instance == null) {
+                            startForegroundService(Intent(this, BubbleService::class.java))
+                        }
                         result.success(null)
                     }
 
@@ -59,6 +61,6 @@ class MainActivity : FlutterActivity() {
     private fun isAccessibilityServiceEnabled(): Boolean {
         val am = getSystemService(ACCESSIBILITY_SERVICE) as AccessibilityManager
         return am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-            .any { it.id.contains("LoadstashAccessibilityService") }
+            .any { it.id.endsWith("LoadstashAccessibilityService") }
     }
 }
