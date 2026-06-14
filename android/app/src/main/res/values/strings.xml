@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_description">Loadstash uses accessibility to detect when the keyboard opens and to paste your selected prompt into the focused text field. It only reads which windows are open — nothing else.</string>
+    <string name="notification_channel_name">Loadstash Bubble</string>
+    <string name="notification_channel_desc">Shows when the floating bubble is active</string>
+    <string name="notification_text">Bubble active — tap to insert prompts</string>
+</resources>
