@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
         android:name=".LoadstashApplication"
-        android:label="loadstash"
+        android:label="Loadstash"
         android:icon="@mipmap/ic_launcher">
 
         <activity
@@ -26,7 +26,7 @@
             android:name=".ProcessTextActivity"
             android:exported="true"
             android:theme="@style/TransparentTheme"
-            android:label="loadstash"
+            android:label="Loadstash"
             android:taskAffinity=""
             android:excludeFromRecents="true">
             <intent-filter>

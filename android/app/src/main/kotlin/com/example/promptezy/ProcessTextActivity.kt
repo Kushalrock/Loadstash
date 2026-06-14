@@ -4,13 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.plugin.common.MethodChannel
 
 class ProcessTextActivity : FlutterActivity() {
     private val channelName = "com.loadstash/overlay"
 
-    override fun getCachedEngineId(): String = LoadstashApplication.OVERLAY_ENGINE_ID
+    // No cached engine — create fresh so configureFlutterEngine runs before Dart starts
+    override fun getInitialRoute(): String = "/overlay"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

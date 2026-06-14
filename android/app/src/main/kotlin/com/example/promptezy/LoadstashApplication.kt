@@ -1,23 +1,9 @@
 package com.example.promptezy
 
 import android.app.Application
-import io.flutter.embedding.engine.FlutterEngine
-import io.flutter.embedding.engine.FlutterEngineCache
-import io.flutter.embedding.engine.dart.DartExecutor
 
-class LoadstashApplication : Application() {
-    companion object {
-        const val OVERLAY_ENGINE_ID = "overlay_engine"
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-
-        val engine = FlutterEngine(this)
-        engine.navigationChannel.setInitialRoute("/overlay")
-        engine.dartExecutor.executeDartEntrypoint(
-            DartExecutor.DartEntrypoint.createDefault()
-        )
-        FlutterEngineCache.getInstance().put(OVERLAY_ENGINE_ID, engine)
-    }
-}
+// Pre-warming removed: the overlay engine must start fresh inside ProcessTextActivity
+// so that configureFlutterEngine() registers the MethodChannel handler BEFORE
+// Dart's OverlayScreen calls getIntentData(). Pre-warming caused a race where
+// Dart ran before any handler existed, leaving the overlay on an infinite spinner.
+class LoadstashApplication : Application()

@@ -13,7 +13,7 @@ class ProcessTextChannel {
         isReadOnly: data['isReadOnly'] as bool? ?? false,
         callingPackage: data['callingPackage'] as String? ?? '',
       );
-    } on PlatformException {
+    } catch (_) {
       return null;
     }
   }
