@@ -45,7 +45,8 @@ class UsageRepository {
       return (appCount * 3.0) + (globalCount * 1.0) + recency;
     }
 
-    final pinned = allPrompts.where((p) => p.pinned).toList();
+    final pinned = allPrompts.where((p) => p.pinned).toList()
+      ..sort((a, b) => score(b).compareTo(score(a)));
     final unpinned = allPrompts.where((p) => !p.pinned).toList()
       ..sort((a, b) => score(b).compareTo(score(a)));
 

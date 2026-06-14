@@ -57,11 +57,11 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
         ),
-        builder: (_) => VariableFillSheet(
+        builder: (sheetCtx) => VariableFillSheet(
           promptBody: prompt.body,
           variableNames: vars,
           onInsert: (assembled) async {
-            Navigator.of(context).pop();
+            Navigator.of(sheetCtx).pop();
             await _insertAndClose(assembled, prompt.id);
           },
         ),

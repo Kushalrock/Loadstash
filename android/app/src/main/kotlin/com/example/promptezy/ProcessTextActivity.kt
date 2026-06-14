@@ -39,13 +39,13 @@ class ProcessTextActivity : FlutterActivity() {
                             putExtra(Intent.EXTRA_PROCESS_TEXT, text)
                         }
                         setResult(RESULT_OK, resultIntent)
-                        finish()
                         result.success(null)
+                        finish()
                     }
                     "cancel" -> {
                         setResult(RESULT_CANCELED)
-                        finish()
                         result.success(null)
+                        finish()
                     }
                     else -> result.notImplemented()
                 }
