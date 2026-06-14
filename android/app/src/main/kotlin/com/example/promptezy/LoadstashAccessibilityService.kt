@@ -51,11 +51,15 @@ class LoadstashAccessibilityService : AccessibilityService() {
         handler.postDelayed({
             try {
                 val root = rootInActiveWindow ?: return@postDelayed
-                val focused = root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_INPUT)
-                    ?: root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
-                focused?.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_PASTE)
-                focused?.recycle()
+                try {
+                    val focused = root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_INPUT)
+                        ?: root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
+                    focused?.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_PASTE)
+                    focused?.recycle()
+                } finally {
+                    root.recycle()
+                }
             } catch (_: Exception) {}
-        }, 300)
+        }, 500)
     }
 }

@@ -15,6 +15,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with WidgetsBindingObserver {
   bool _bubbleRunning = false;
   bool _togglingBubble = false;
+  bool _pendingEnable = false;
 
   @override
   void initState() {
@@ -31,7 +32,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _refreshBubbleState();
+    if (state == AppLifecycleState.resumed) {
+      _refreshBubbleState();
+      if (_pendingEnable) _enableBubble();
+    }
   }
 
   Future<void> _refreshBubbleState() async {
@@ -63,7 +67,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         body: 'Loadstash needs the "Draw over other apps" permission to show the floating bubble.',
         action: 'Grant',
       );
-      if (grant == true) await SettingsChannel.openOverlaySettings();
+      if (grant == true) {
+        setState(() => _pendingEnable = true);
+        await SettingsChannel.openOverlaySettings();
+      }
       return;
     }
 
@@ -75,10 +82,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
         body: 'Loadstash uses accessibility to detect when the keyboard opens and to paste your prompt. It only reads which windows are open — nothing else.',
         action: 'Open Settings',
       );
-      if (open == true) await SettingsChannel.openAccessibilitySettings();
+      if (open == true) {
+        setState(() => _pendingEnable = true);
+        await SettingsChannel.openAccessibilitySettings();
+      }
       return;
     }
 
+    setState(() => _pendingEnable = false);
     await SettingsChannel.startBubble();
     if (mounted) setState(() => _bubbleRunning = true);
   }

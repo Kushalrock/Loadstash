@@ -11,6 +11,13 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
 
+    private var isBubbleStarting = false
+
+    override fun onResume() {
+        super.onResume()
+        if (BubbleService.instance != null) isBubbleStarting = false
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
@@ -27,7 +34,8 @@ class MainActivity : FlutterActivity() {
                         result.success(BubbleService.instance != null)
 
                     "startBubble" -> {
-                        if (BubbleService.instance == null) {
+                        if (BubbleService.instance == null && !isBubbleStarting) {
+                            isBubbleStarting = true
                             startForegroundService(Intent(this, BubbleService::class.java))
                         }
                         result.success(null)
