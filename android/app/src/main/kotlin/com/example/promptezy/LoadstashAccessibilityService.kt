@@ -65,18 +65,41 @@ class LoadstashAccessibilityService : AccessibilityService() {
     }
 
     fun doPaste() {
+        // 800ms: gives React Native (ChatGPT, Claude) time to re-focus the text field
+        // after the overlay activity finishes its transition back.
         handler.postDelayed({
             try {
                 val root = rootInActiveWindow ?: return@postDelayed
                 try {
-                    val focused = root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_INPUT)
-                        ?: root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
-                    focused?.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_PASTE)
-                    focused?.recycle()
+                    val focused =
+                        root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_INPUT)
+                            ?: root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
+                    if (focused != null) {
+                        pasteIntoNode(focused)
+                        focused.recycle()
+                    }
                 } finally {
                     root.recycle()
                 }
             } catch (_: Exception) {}
-        }, 500)
+        }, 800)
+    }
+
+    private fun pasteIntoNode(node: android.view.accessibility.AccessibilityNodeInfo) {
+        // Primary: ACTION_PASTE — works for standard EditText
+        if (node.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_PASTE)) return
+
+        // Fallback: ACTION_SET_TEXT — works for React Native TextInput (ChatGPT, Claude)
+        // even when ACTION_PASTE is not supported by the component.
+        val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+            as? android.content.ClipboardManager
+        val text = clipboard?.primaryClip?.getItemAt(0)?.text?.toString() ?: return
+        val args = android.os.Bundle().apply {
+            putCharSequence(
+                android.view.accessibility.AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE,
+                text
+            )
+        }
+        node.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_SET_TEXT, args)
     }
 }
