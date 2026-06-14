@@ -1,5 +1,5 @@
-name: promptezy
-description: "A new Flutter project."
+name: loadstash
+description: "Your prompts, curated and your own, usable in any app."
 publish_to: 'none'
 version: 0.1.0+1
 
@@ -9,11 +9,27 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  drift: ^2.22.0
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.4
+  path: ^1.9.0
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+  go_router: ^14.2.7
+  google_fonts: ^6.2.1
+  shared_preferences: ^2.3.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  drift_dev: ^2.22.0
+  build_runner: ^2.4.11
+  riverpod_generator: ^2.4.3
+  riverpod_lint: ^2.3.13
+  custom_lint: ^0.7.6
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/seeds/
