@@ -101,18 +101,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      // useRootNavigator: true is Flutter's default — the dialog is pushed onto
+      // the root navigator. We must pop using the dialog's own context (dialogCtx),
+      // NOT the settings screen's context, which is on the ShellRoute sub-navigator.
+      builder: (dialogCtx) => AlertDialog(
         backgroundColor: AppColors.surface2,
         title: Text(title, style: AppTypography.label),
         content: Text(body, style: AppTypography.bodySmall),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogCtx, false),
             child: const Text('Cancel',
                 style: TextStyle(color: AppColors.textSecondary)),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogCtx, true),
             child: Text(action,
                 style: const TextStyle(color: AppColors.accent)),
           ),
