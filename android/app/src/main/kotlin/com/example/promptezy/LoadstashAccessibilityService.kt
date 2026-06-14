@@ -49,7 +49,13 @@ class LoadstashAccessibilityService : AccessibilityService() {
 
     fun doPaste() {
         handler.postDelayed({
-            performGlobalAction(GLOBAL_ACTION_PASTE)
+            try {
+                val root = rootInActiveWindow ?: return@postDelayed
+                val focused = root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_INPUT)
+                    ?: root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
+                focused?.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_PASTE)
+                focused?.recycle()
+            } catch (_: Exception) {}
         }, 300)
     }
 }
