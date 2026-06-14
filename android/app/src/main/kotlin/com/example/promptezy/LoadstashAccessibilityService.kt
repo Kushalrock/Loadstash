@@ -67,9 +67,13 @@ class LoadstashAccessibilityService : AccessibilityService() {
     fun doPaste() {
         handler.postDelayed({
             try {
-                val root = rootInActiveWindow ?: return@postDelayed
+                // rootInActiveWindow returns whichever window has input focus —
+                // on React Native apps (ChatGPT, Claude) that's often the keyboard
+                // window itself after the overlay transition, not the app window.
+                // Explicitly grab the foremost TYPE_APPLICATION window instead.
+                val root = appWindowRoot() ?: rootInActiveWindow ?: return@postDelayed
                 try {
-                    // Strategy 1: accessibility-focused input field (fast path, standard apps)
+                    // Strategy 1: accessibility-focused input field (fast path)
                     val focused =
                         root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_INPUT)
                             ?: root.findFocus(android.view.accessibility.AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
@@ -79,8 +83,7 @@ class LoadstashAccessibilityService : AccessibilityService() {
                     }
                     focused?.recycle()
 
-                    // Strategy 2: tree traversal — finds the editable field even when
-                    // the app (ChatGPT, Claude) hasn't re-registered accessibility focus yet.
+                    // Strategy 2: DFS for any editable node in the app tree
                     val editable = findFirstEditable(root)
                     if (editable != null) {
                         pasteIntoNode(editable)
@@ -91,6 +94,17 @@ class LoadstashAccessibilityService : AccessibilityService() {
                 }
             } catch (_: Exception) {}
         }, 800)
+    }
+
+    // Returns the root node of the front-most application window, avoiding the
+    // keyboard (TYPE_INPUT_METHOD) and system UI windows.
+    private fun appWindowRoot(): android.view.accessibility.AccessibilityNodeInfo? {
+        return try {
+            windows
+                ?.filter { it.type == android.view.accessibility.AccessibilityWindowInfo.TYPE_APPLICATION }
+                ?.maxByOrNull { it.layer }
+                ?.root
+        } catch (_: Exception) { null }
     }
 
     // DFS through the accessibility tree — returns the first editable node found.
