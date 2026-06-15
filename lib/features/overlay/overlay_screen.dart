@@ -24,6 +24,7 @@ class OverlayScreen extends ConsumerStatefulWidget {
 
 class _OverlayScreenState extends ConsumerState<OverlayScreen> {
   String _query = '';
+  String? _modelFilter;
   List<Prompt> _prompts = [];
   bool _loading = true;
 
@@ -86,13 +87,14 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
   }
 
   List<Prompt> get _filtered {
-    if (_query.isEmpty) return _prompts;
+    var result = _prompts;
+    if (_modelFilter != null) {
+      result = result.where((p) => p.modelTags.split(',').contains(_modelFilter!)).toList();
+    }
+    if (_query.isEmpty) return result;
     final q = _query.toLowerCase();
-    return _prompts
-        .where((p) =>
-            p.title.toLowerCase().contains(q) ||
-            p.body.toLowerCase().contains(q))
-        .toList();
+    return result.where((p) =>
+        p.title.toLowerCase().contains(q) || p.body.toLowerCase().contains(q)).toList();
   }
 
   @override
@@ -143,6 +145,27 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
                         onChanged: (q) => setState(() => _query = q),
                       ),
                     ),
+                    // Model filter chips
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: Row(children: [
+                        _ModelChip(label: 'All', color: null, active: _modelFilter == null,
+                            onTap: () => setState(() => _modelFilter = null)),
+                        const SizedBox(width: 7),
+                        ...[
+                          ('claude', 'Claude', AppColors.modelClaude),
+                          ('chatgpt', 'ChatGPT', AppColors.modelChatGpt),
+                          ('gemini', 'Gemini', AppColors.modelGemini),
+                          ('local', 'Local', AppColors.modelLocal),
+                        ].map((e) => Padding(
+                          padding: const EdgeInsets.only(right: 7),
+                          child: _ModelChip(
+                            label: e.$2, color: e.$3,
+                            active: _modelFilter == e.$1,
+                            onTap: () => setState(() => _modelFilter = _modelFilter == e.$1 ? null : e.$1)))),
+                      ]),
+                    ),
                     if (_loading)
                       const Padding(
                         padding: EdgeInsets.all(32),
@@ -168,5 +191,35 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
         ),
       ),
     );
+  }
+}
+
+class _ModelChip extends StatelessWidget {
+  const _ModelChip({required this.label, required this.color, required this.active, required this.onTap});
+  final String label;
+  final Color? color;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? AppColors.accentTint : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: active ? AppColors.accentDim : AppColors.borderHairline)),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          if (color != null) ...[
+            Container(width: 7, height: 7, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+            const SizedBox(width: 6),
+          ],
+          Text(label, style: TextStyle(fontSize: 12.5,
+              color: active ? AppColors.textPrimary : AppColors.textSecondary,
+              fontWeight: FontWeight.w500)),
+        ])));
   }
 }

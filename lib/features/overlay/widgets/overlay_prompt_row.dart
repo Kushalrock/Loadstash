@@ -69,17 +69,11 @@ class _ModelDots extends StatelessWidget {
   }
 
   Widget _dot(String tag) {
-    final color = switch (tag) {
-      'claude' => AppColors.modelClaude,
-      'chatgpt' => AppColors.modelChatGpt,
-      'gemini' => AppColors.modelGemini,
-      _ => AppColors.modelLocal,
-    };
     return Container(
       width: 7,
       height: 7,
       margin: const EdgeInsets.only(left: 4),
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      decoration: BoxDecoration(color: AppColors.forModel(tag), shape: BoxShape.circle),
     );
   }
 }
