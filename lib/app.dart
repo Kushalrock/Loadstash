@@ -7,13 +7,16 @@ import 'features/library/library_screen.dart';
 import 'features/overlay/overlay_screen.dart';
 import 'features/editor/editor_screen.dart';
 import 'features/settings/settings_screen.dart';
+import 'features/settings/tags_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
+import 'features/prompt_detail/prompt_detail_screen.dart';
 import 'services/preferences_service.dart';
 
 final _router = GoRouter(
   redirect: (context, state) async {
     if (state.matchedLocation == '/overlay') return null;
     if (state.matchedLocation == '/bubble-overlay') return null;
+    if (state.matchedLocation == '/prompt') return null;
     final done = await PreferencesService.isOnboardingDone();
     if (!done) return '/onboarding';
     return null;
@@ -23,6 +26,10 @@ final _router = GoRouter(
     GoRoute(
       path: '/bubble-overlay',
       builder: (_, __) => const OverlayScreen(mode: OverlayMode.bubble),
+    ),
+    GoRoute(
+      path: '/prompt',
+      builder: (_, state) => PromptDetailScreen(promptId: state.extra as int),
     ),
     GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
     ShellRoute(
@@ -34,6 +41,7 @@ final _router = GoRouter(
           builder: (_, state) => EditorScreen(promptId: state.extra as int?),
         ),
         GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
+        GoRoute(path: '/tags', builder: (_, __) => const TagsScreen()),
       ],
     ),
   ],
