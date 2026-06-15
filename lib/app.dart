@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'core/theme/app_theme.dart';
-import 'core/theme/app_colors.dart';
 import 'features/library/library_screen.dart';
 import 'features/overlay/overlay_screen.dart';
 import 'features/editor/editor_screen.dart';
@@ -63,36 +62,11 @@ class LoadstashApp extends ConsumerWidget {
   }
 }
 
-class AppShell extends StatefulWidget {
+// AppShell is a passthrough — LibraryScreen and SettingsScreen own their bottom navs.
+class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.child});
   final Widget child;
 
   @override
-  State<AppShell> createState() => _AppShellState();
-}
-
-class _AppShellState extends State<AppShell> {
-  int _selectedIndex = 0;
-
-  static const _tabs = [
-    (path: '/', icon: Icons.grid_view_rounded, label: 'Library'),
-    (path: '/settings', icon: Icons.settings_outlined, label: 'Settings'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: widget.child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (i) {
-          setState(() => _selectedIndex = i);
-          context.go(_tabs[i].path);
-        },
-        destinations: _tabs
-            .map((t) => NavigationDestination(icon: Icon(t.icon), label: t.label))
-            .toList(),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => child;
 }
