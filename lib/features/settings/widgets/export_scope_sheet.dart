@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/prompt_provider.dart';
@@ -51,7 +50,7 @@ class ExportScopeSheet extends ConsumerWidget {
                 label: 'All prompts',
                 count: all.length,
                 onTap: all.isNotEmpty
-                    ? () => context.pop(ExportScope.all)
+                    ? () => Navigator.of(context).pop(ExportScope.all)
                     : null,
               ),
               const SizedBox(height: 8),
@@ -59,7 +58,7 @@ class ExportScopeSheet extends ConsumerWidget {
                 label: 'Your prompts',
                 count: yourCount,
                 onTap: yourCount > 0
-                    ? () => context.pop(ExportScope.yours)
+                    ? () => Navigator.of(context).pop(ExportScope.yours)
                     : null,
               ),
               const SizedBox(height: 8),
@@ -67,7 +66,7 @@ class ExportScopeSheet extends ConsumerWidget {
                 label: 'Starter library',
                 count: starterCount,
                 onTap: starterCount > 0
-                    ? () => context.pop(ExportScope.starters)
+                    ? () => Navigator.of(context).pop(ExportScope.starters)
                     : null,
               ),
             ],
