@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../services/model_tag_service.dart';
+import 'widgets/model_tag_editor_sheet.dart';
 
 class TagsScreen extends StatefulWidget {
   const TagsScreen({super.key});
@@ -10,19 +12,76 @@ class TagsScreen extends StatefulWidget {
 }
 
 class _TagsScreenState extends State<TagsScreen> {
-  final List<String> _searchTags = ['work', 'sales', 'learning', 'dev', 'data', 'creative', 'social', 'writing'];
+  final List<String> _searchTags = [
+    'work', 'sales', 'learning', 'dev', 'data', 'creative', 'social', 'writing',
+  ];
   bool _addingTag = false;
   final _newTagCtrl = TextEditingController();
-
-  static const _modelTags = [
-    ('claude', 'Claude', AppColors.modelClaude, 'prefilled'),
-    ('chatgpt', 'ChatGPT', AppColors.modelChatGpt, 'prefilled'),
-    ('gemini', 'Gemini', AppColors.modelGemini, 'prefilled'),
-    ('local', 'Local', AppColors.modelLocal, 'custom'),
-  ];
+  List<ModelTag> _modelTags = [];
 
   @override
-  void dispose() { _newTagCtrl.dispose(); super.dispose(); }
+  void initState() {
+    super.initState();
+    _modelTags = List.of(ModelTagService.all);
+  }
+
+  @override
+  void dispose() {
+    _newTagCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _addModelTag() async {
+    final tag = await showModalBottomSheet<ModelTag>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface2,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => const ModelTagEditorSheet(),
+    );
+    if (tag == null) return;
+    final updated = [..._modelTags, tag];
+    await ModelTagService.save(updated);
+    if (mounted) setState(() => _modelTags = List.of(ModelTagService.all));
+  }
+
+  Future<void> _editModelTag(int index) async {
+    final tag = await showModalBottomSheet<ModelTag>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface2,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => ModelTagEditorSheet(existing: _modelTags[index]),
+    );
+    if (tag == null) return;
+    final updated = List.of(_modelTags)..[index] = tag;
+    await ModelTagService.save(updated);
+    if (mounted) setState(() => _modelTags = List.of(ModelTagService.all));
+  }
+
+  Future<void> _deleteModelTag(int index) async {
+    final tag = _modelTags[index];
+    final updated = List.of(_modelTags)..removeAt(index);
+    await ModelTagService.save(updated);
+    if (!mounted) return;
+    setState(() => _modelTags = List.of(ModelTagService.all));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${tag.label} deleted'),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () async {
+            final restored = List.of(ModelTagService.all)..insert(index, tag);
+            await ModelTagService.save(restored);
+            if (mounted) setState(() => _modelTags = List.of(ModelTagService.all));
+          },
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +101,7 @@ class _TagsScreenState extends State<TagsScreen> {
             style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5)),
         const SizedBox(height: 22),
 
-        // Search tags
+        // ── Search tags ─────────────────────────────────────
         const Row(children: [
           Icon(Icons.tag, size: 16, color: AppColors.textSecondary),
           SizedBox(width: 8),
@@ -57,7 +116,9 @@ class _TagsScreenState extends State<TagsScreen> {
             onTap: () => setState(() => _searchTags.remove(t)),
             child: Container(
               padding: const EdgeInsets.fromLTRB(10, 4, 8, 4),
-              decoration: BoxDecoration(border: Border.all(color: const Color(0x33FFFFFF)), borderRadius: BorderRadius.circular(999)),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0x33FFFFFF)),
+                borderRadius: BorderRadius.circular(999)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 const Text('#', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
                 Text(t, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
@@ -98,19 +159,21 @@ class _TagsScreenState extends State<TagsScreen> {
         ]),
         const Divider(height: 32, color: AppColors.borderHairline),
 
-        // Model tags
+        // ── Model tags ───────────────────────────────────────
         Row(children: [
-          ..._modelTags.map((t) => Padding(padding: const EdgeInsets.only(right: 3),
-              child: Container(width: 7, height: 7, decoration: BoxDecoration(shape: BoxShape.circle, color: t.$3)))),
+          ..._modelTags.take(4).map((t) => Padding(
+            padding: const EdgeInsets.only(right: 3),
+            child: Container(width: 7, height: 7,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: t.colorValue)))),
           const SizedBox(width: 8),
           const Text('Model tags', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         ]),
         const SizedBox(height: 4),
-        const Text('Prefilled and colour-coded by model. You can add your own too.',
+        const Text('Colour-coded by model. Edit or delete any tag, or add your own.',
             style: TextStyle(fontSize: 12, color: AppColors.textTertiary, height: 1.5)),
         const SizedBox(height: 13),
-        Column(children: _modelTags.map((entry) {
-          final (key, label, color, badge) = entry;
+        ...List.generate(_modelTags.length, (i) {
+          final tag = _modelTags[i];
           return Container(
             margin: const EdgeInsets.only(bottom: 9),
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
@@ -118,22 +181,38 @@ class _TagsScreenState extends State<TagsScreen> {
               color: AppColors.surface1, borderRadius: BorderRadius.circular(13),
               border: Border.all(color: AppColors.borderHairline)),
             child: Row(children: [
-              Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+              Container(width: 12, height: 12,
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: tag.colorValue)),
               const SizedBox(width: 12),
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                Text('#${color.value.toRadixString(16).toUpperCase().substring(2)}',
-                  style: const TextStyle(fontSize: 11, color: AppColors.textTertiary, fontFamily: 'JetBrainsMono')),
+                Text(tag.label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                Text(tag.color.toUpperCase(),
+                    style: const TextStyle(fontSize: 11, color: AppColors.textTertiary, fontFamily: 'JetBrainsMono')),
               ])),
-              Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(999), border: Border.all(color: AppColors.borderHairline)),
-                child: Text(badge, style: const TextStyle(fontSize: 10.5, color: AppColors.textTertiary))),
+              GestureDetector(
+                onTap: () => _editModelTag(i),
+                child: Container(width: 32, height: 32,
+                  decoration: BoxDecoration(color: AppColors.surface1,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.borderHairline)),
+                  child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary))),
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: () => _deleteModelTag(i),
+                child: Container(width: 32, height: 32,
+                  decoration: BoxDecoration(color: AppColors.surface1,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.borderHairline)),
+                  child: const Icon(Icons.delete_outline, size: 16, color: AppColors.textSecondary))),
             ]));
-        }).toList()),
+        }),
         GestureDetector(
-          onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add model tag — coming soon'))),
-          child: Container(width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.borderHairline)),
+          onTap: _addModelTag,
+          child: Container(
+            width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderHairline)),
             child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Icon(Icons.add, size: 16, color: AppColors.textSecondary),
               SizedBox(width: 7),
