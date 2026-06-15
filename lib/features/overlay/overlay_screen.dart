@@ -6,6 +6,8 @@ import '../../data/database/app_database.dart';
 import '../../providers/overlay_provider.dart';
 import '../../providers/repository_providers.dart';
 import '../../services/bubble_channel.dart';
+import '../../services/model_tag_service.dart';
+import '../../services/preferences_service.dart';
 import '../../services/process_text_channel.dart';
 import '../../services/variable_detector.dart';
 import 'widgets/overlay_search_bar.dart';
@@ -28,16 +30,31 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
   List<Prompt> _prompts = [];
   bool _loading = true;
 
+  bool _showQuickAdd = false;
+  final _quickAddCtrl = TextEditingController();
+  List<String> _quickAddModels = [];
+  bool _quickAddPinned = false;
+
   @override
   void initState() {
     super.initState();
     _init();
   }
 
+  @override
+  void dispose() {
+    _quickAddCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _init() async {
     // Reset filter state on each launch
     _query = '';
     _modelFilter = null;
+    _showQuickAdd = false;
+    _quickAddCtrl.clear();
+    _quickAddModels = [];
+    _quickAddPinned = false;
     String callingPkg = '';
     if (widget.mode == OverlayMode.processText) {
       final intentData = await ProcessTextChannel.getIntentData();
@@ -86,6 +103,40 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
       await ProcessTextChannel.setResult(text);
     } else {
       await BubbleChannel.insertText(text);
+    }
+  }
+
+  Future<void> _saveQuickAdd() async {
+    final body = _quickAddCtrl.text.trim();
+    if (body.isEmpty) return;
+
+    var title = body
+        .split('\n').first
+        .replaceAll(RegExp(r'\{\{(\w+)\}\}'), r'$1')
+        .trim();
+    if (title.length > 42) title = '${title.substring(0, 42)}…';
+    if (title.isEmpty) title = 'Quick prompt';
+
+    final quickAddPath = await PreferencesService.getQuickAddPath();
+
+    await ref.read(promptRepositoryProvider).create(
+      title: title,
+      body: body,
+      path: quickAddPath,
+      modelTags: _quickAddModels.join(','),
+      pinned: _quickAddPinned,
+    );
+
+    if (mounted) {
+      final location = quickAddPath.isEmpty ? 'Library' : quickAddPath.join(' › ');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved to $location')));
+      setState(() {
+        _showQuickAdd = false;
+        _quickAddCtrl.clear();
+        _quickAddModels = [];
+        _quickAddPinned = false;
+      });
     }
   }
 
@@ -145,8 +196,34 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                      child: OverlaySearchBar(
-                        onChanged: (q) => setState(() => _query = q),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OverlaySearchBar(
+                              onChanged: (q) => setState(() => _query = q),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () => setState(() => _showQuickAdd = true),
+                            child: Container(
+                              width: 44,
+                              height: 44,
+                              decoration: BoxDecoration(
+                                color: AppColors.accent,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.accent.withOpacity(0.4),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(Icons.add, color: Colors.white, size: 22),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     // Model filter chips
@@ -170,7 +247,9 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
                             onTap: () => setState(() => _modelFilter = _modelFilter == e.$1 ? null : e.$1)))),
                       ]),
                     ),
-                    if (_loading)
+                    if (_showQuickAdd)
+                      _buildQuickAddView()
+                    else if (_loading)
                       const Padding(
                         padding: EdgeInsets.all(32),
                         child: CircularProgressIndicator(color: AppColors.accent),
@@ -191,6 +270,122 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickAddView() {
+    final vars = VariableDetector.detect(_quickAddCtrl.text);
+    return Flexible(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              GestureDetector(
+                onTap: () => setState(() => _showQuickAdd = false),
+                child: const Icon(Icons.chevron_left, size: 20, color: AppColors.textSecondary),
+              ),
+              const SizedBox(width: 4),
+              const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Quick add', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                Text('Paste a prompt to save it instantly',
+                    style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+              ])),
+              TextButton(
+                onPressed: _quickAddCtrl.text.trim().isNotEmpty ? _saveQuickAdd : null,
+                child: Text('Save', style: TextStyle(
+                  color: _quickAddCtrl.text.trim().isNotEmpty
+                      ? AppColors.accentText : AppColors.textTertiary,
+                  fontWeight: FontWeight.w600, fontSize: 14)),
+              ),
+            ]),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _quickAddCtrl,
+              onChanged: (_) => setState(() {}),
+              style: const TextStyle(fontFamily: 'JetBrainsMono', fontSize: 13,
+                  color: AppColors.textPrimary, height: 1.6),
+              maxLines: 6,
+              autofocus: true,
+              decoration: const InputDecoration(
+                hintText: 'Paste or type your prompt. Use {{variable}} for fill-ins.',
+                alignLabelWithHint: true),
+            ),
+            if (vars.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(children: [
+                const Icon(Icons.tune, size: 14, color: AppColors.accentText),
+                const SizedBox(width: 6),
+                Text(
+                  '${vars.length} variable${vars.length == 1 ? '' : 's'} detected: ${vars.join(', ')}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.accentText)),
+              ]),
+            ],
+            const SizedBox(height: 16),
+            const Text('MODEL TAGS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+                letterSpacing: 0.06, color: AppColors.textTertiary)),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8, runSpacing: 8,
+              children: ModelTagService.all.map((tag) {
+                final selected = _quickAddModels.contains(tag.key);
+                return GestureDetector(
+                  onTap: () => setState(() {
+                    if (selected) _quickAddModels.remove(tag.key);
+                    else _quickAddModels.add(tag.key);
+                  }),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: selected ? tag.colorValue.withOpacity(0.13) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                          color: selected ? tag.colorValue.withOpacity(0.47) : AppColors.borderHairline)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Container(width: 8, height: 8,
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: tag.colorValue)),
+                      const SizedBox(width: 6),
+                      Text(tag.label, style: TextStyle(
+                          fontSize: 12.5,
+                          color: selected ? AppColors.textPrimary : AppColors.textSecondary,
+                          fontWeight: FontWeight.w500)),
+                      if (selected) ...[
+                        const SizedBox(width: 5),
+                        const Icon(Icons.check, size: 13, color: AppColors.textPrimary),
+                      ],
+                    ])),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              decoration: BoxDecoration(
+                  color: AppColors.surface1, borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: AppColors.borderHairline)),
+              child: SwitchListTile(
+                title: const Text('Pinned', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                value: _quickAddPinned,
+                onChanged: (v) => setState(() => _quickAddPinned = v),
+                activeColor: AppColors.accent,
+                contentPadding: EdgeInsets.zero)),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: _quickAddCtrl.text.trim().isNotEmpty ? _saveQuickAdd : null,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  disabledBackgroundColor: AppColors.accentTint,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                child: const Text('Save prompt',
+                    style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600)))),
           ],
         ),
       ),
