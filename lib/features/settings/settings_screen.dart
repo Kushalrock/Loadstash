@@ -2,10 +2,12 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/animations/animations.dart';
+import '../../core/theme/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../providers/repository_providers.dart';
@@ -274,12 +276,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
               border: Border.all(color: _bubbleRunning ? AppColors.accentDim : AppColors.borderHairline)),
             child: Column(children: [
               Row(children: [
-                Container(width: 42, height: 42,
-                  decoration: BoxDecoration(
-                    color: _bubbleRunning ? AppColors.accentTint : const Color(0x0DFFFFFF),
-                    borderRadius: BorderRadius.circular(12)),
-                  child: Icon(Icons.auto_awesome, size: 22,
-                      color: _bubbleRunning ? AppColors.accentText : AppColors.textSecondary)),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SvgPicture.asset(AppAssets.icon, width: 42, height: 42)),
                 const SizedBox(width: 13),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   const Text('Loadstash launcher', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),

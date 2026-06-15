@@ -17,6 +17,7 @@ dependencies:
   riverpod_annotation: ^2.3.5
   go_router: ^14.2.7
   google_fonts: ^6.2.1
+  flutter_svg: ^2.0.10+1
   shared_preferences: ^2.3.2
   # Import / Export
   archive: ^3.6.1
@@ -38,3 +39,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/seeds/
+    - assets/images/

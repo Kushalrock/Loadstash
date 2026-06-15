@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/animations/animations.dart';
+import '../../core/theme/app_assets.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/seeds/starter_prompts.dart';
@@ -117,10 +119,9 @@ class _ObHeader extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(20, 0, 20, 4),
     child: Row(children: [
-      Container(width: 30, height: 30,
-        decoration: BoxDecoration(color: AppColors.accentTint, borderRadius: BorderRadius.circular(9),
-            border: Border.all(color: AppColors.accentDim)),
-        child: const Icon(Icons.auto_awesome, size: 16, color: AppColors.accentText)),
+      ClipRRect(
+        borderRadius: BorderRadius.circular(9),
+        child: SvgPicture.asset(AppAssets.icon, width: 30, height: 30)),
       const SizedBox(width: 10),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
         Text('Loadstash', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
@@ -139,7 +140,12 @@ class _Step1 extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(20),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.end, children: [
-      FadeUpWidget(delay: Duration.zero, child: _ObBubble("Hi — I'm Loadstash.")),
+      FadeUpWidget(
+        delay: Duration.zero,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: SvgPicture.asset(AppAssets.wordmark, height: 48))),
+      FadeUpWidget(delay: const Duration(milliseconds: 200), child: _ObBubble("Hi — I'm Loadstash.")),
       const SizedBox(height: 11),
       FadeUpWidget(delay: const Duration(milliseconds: 500),
         child: _ObBubble('I keep your best prompts one tap away, inside any app on your phone.')),
@@ -168,9 +174,9 @@ class _Step2 extends StatelessWidget {
             color: AppColors.surface1, borderRadius: BorderRadius.circular(16),
             border: Border.all(color: launcherOn ? AppColors.accentDim : AppColors.borderHairline)),
           child: Row(children: [
-            Container(width: 40, height: 40,
-              decoration: BoxDecoration(color: AppColors.accentTint, borderRadius: BorderRadius.circular(11)),
-              child: const Icon(Icons.auto_awesome, size: 21, color: AppColors.accentText)),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(11),
+              child: SvgPicture.asset(AppAssets.icon, width: 40, height: 40)),
             const SizedBox(width: 13),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text('Loadstash launcher', style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600)),
@@ -359,7 +365,8 @@ class _DemoCard extends StatelessWidget {
             child: Container(
               width: 42, height: 42,
               decoration: const BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
-              child: const Icon(Icons.auto_awesome, size: 20, color: Colors.white))),
+              padding: const EdgeInsets.all(10),
+              child: SvgPicture.asset(AppAssets.iconForeground))),
           // Picker/fill sheet
           AnimatedPositioned(
             duration: const Duration(milliseconds: 450), curve: kSpring,

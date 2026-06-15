@@ -12,7 +12,7 @@ import android.os.IBinder
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.WindowManager
-import android.widget.TextView
+import android.widget.ImageView
 import androidx.core.app.NotificationCompat
 import kotlin.math.abs
 
@@ -29,7 +29,7 @@ class BubbleService : Service() {
     }
 
     private lateinit var windowManager: WindowManager
-    private lateinit var bubbleView: TextView
+    private lateinit var bubbleView: ImageView
     private lateinit var params: WindowManager.LayoutParams
 
     private var initialX = 0
@@ -69,11 +69,15 @@ class BubbleService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun createBubbleView() {
-        bubbleView = TextView(this).apply {
-            text = "L"
-            textSize = 22f
-            setTextColor(0xFFFFFFFF.toInt())
-            gravity = android.view.Gravity.CENTER
+        bubbleView = ImageView(this).apply {
+            setImageResource(R.drawable.ic_bubble_fg)
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            setPadding(
+                (10 * resources.displayMetrics.density).toInt(),
+                (10 * resources.displayMetrics.density).toInt(),
+                (10 * resources.displayMetrics.density).toInt(),
+                (10 * resources.displayMetrics.density).toInt(),
+            )
             setBackgroundResource(R.drawable.bubble_background)
             elevation = 8f * resources.displayMetrics.density
         }
