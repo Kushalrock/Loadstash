@@ -325,16 +325,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
     child: Row(children: [
       _NavItem(icon: Icons.book_outlined, label: 'Library', active: false, onTap: () => context.go('/')),
       const Spacer(),
-      Column(mainAxisSize: MainAxisSize.min, children: [
-        GestureDetector(
-          onTap: () => context.push('/editor'),
-          child: Container(width: 52, height: 52, margin: const EdgeInsets.only(bottom: 22),
-            decoration: BoxDecoration(
-              color: AppColors.accent, borderRadius: BorderRadius.circular(17),
-              boxShadow: [BoxShadow(color: AppColors.accent.withOpacity(0.6), blurRadius: 22, offset: const Offset(0, 8))]),
-            child: const Icon(Icons.add, color: Colors.white, size: 26))),
-        const Text('New prompt', style: TextStyle(fontSize: 10, color: AppColors.textTertiary, fontWeight: FontWeight.w500)),
-      ]),
+      GestureDetector(
+        onTap: () => context.push('/editor'),
+        child: Container(width: 52, height: 52, margin: const EdgeInsets.only(bottom: 22),
+          decoration: BoxDecoration(
+            color: AppColors.accent, borderRadius: BorderRadius.circular(17),
+            boxShadow: [BoxShadow(color: AppColors.accent.withOpacity(0.6), blurRadius: 22, offset: const Offset(0, 8))]),
+          child: const Icon(Icons.add, color: Colors.white, size: 26))),
       const Spacer(),
       _NavItem(icon: Icons.settings_outlined, label: 'Settings', active: true, onTap: () {}),
     ]));
