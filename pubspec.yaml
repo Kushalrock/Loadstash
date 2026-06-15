@@ -18,6 +18,11 @@ dependencies:
   go_router: ^14.2.7
   google_fonts: ^6.2.1
   shared_preferences: ^2.3.2
+  # Import / Export
+  archive: ^3.6.1
+  file_picker: ^8.1.4
+  share_plus: ^10.1.2
+  yaml: ^3.1.2
 
 dev_dependencies:
   flutter_test:
