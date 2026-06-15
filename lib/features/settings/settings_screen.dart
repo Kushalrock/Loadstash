@@ -144,8 +144,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
           allPrompts: allPrompts,
         ),
       );
-      if (picked == null) return;
-      fallbackPath = picked;
+      // If user cancels, use root folder as fallback rather than aborting
+      fallbackPath = picked ?? [];
     }
 
     // 4. Import

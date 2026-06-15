@@ -31,13 +31,35 @@ class ApmPackage {
 
 abstract final class PromptFileParser {
   static ParsedPrompt parseFile(String content) {
-    final parts = content.split('---');
-    if (parts.length < 3) {
+    final lines = content.split('\n');
+
+    // Find opening and closing --- fences
+    // Opening fence must be on first non-empty line
+    int openFence = -1;
+    for (var i = 0; i < lines.length; i++) {
+      final l = lines[i].trim();
+      if (l == '---') { openFence = i; break; }
+      if (l.isNotEmpty) break; // non-fence non-empty line before first --- → no frontmatter
+    }
+
+    if (openFence == -1) {
       return ParsedPrompt(title: 'Untitled', body: content.trim(),
           inputs: [], modelTags: [], path: [], searchTags: [], pinned: false);
     }
-    final frontmatter = parts[1];
-    final body = parts.sublist(2).join('---').trim();
+
+    // Find closing fence (first --- after the opening fence)
+    int closeFence = -1;
+    for (var i = openFence + 1; i < lines.length; i++) {
+      if (lines[i].trim() == '---') { closeFence = i; break; }
+    }
+
+    if (closeFence == -1) {
+      return ParsedPrompt(title: 'Untitled', body: content.trim(),
+          inputs: [], modelTags: [], path: [], searchTags: [], pinned: false);
+    }
+
+    final frontmatter = lines.sublist(openFence + 1, closeFence).join('\n');
+    final body = lines.sublist(closeFence + 1).join('\n').trim();
 
     YamlMap? fm;
     try {
@@ -60,10 +82,10 @@ abstract final class PromptFileParser {
   }
 
   static String convertFromApm(String body) => body.replaceAllMapped(
-    RegExp(r'\$\{input:([A-Za-z][\w-]*)\}'), (m) => '{{${m.group(1)}}}');
+    RegExp(r'\$\{input:([A-Za-z]\w*)\}'), (m) => '{{${m.group(1)}}}');
 
   static String convertToApm(String body) => body.replaceAllMapped(
-    RegExp(r'\{\{([A-Za-z][\w-]*)\}\}'), (m) => '\${input:${m.group(1)}}');
+    RegExp(r'\{\{([A-Za-z]\w*)\}\}'), (m) => '\${input:${m.group(1)}}');
 
   static List<VariableInput> _parseInputs(dynamic input) {
     if (input is! YamlList) return [];
