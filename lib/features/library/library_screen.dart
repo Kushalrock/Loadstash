@@ -26,10 +26,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   Widget build(BuildContext context) {
     final allAsync = ref.watch(promptsStreamProvider);
     return Scaffold(
-      body: allAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (all) => _buildBody(context, all),
+      body: SafeArea(
+        bottom: false,
+        child: allAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (all) => _buildBody(context, all),
+        ),
       ),
       bottomNavigationBar: _buildBottomNav(context),
     );

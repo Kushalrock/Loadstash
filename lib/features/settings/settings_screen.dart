@@ -222,7 +222,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(children: [
+      body: SafeArea(
+        bottom: false,
+        child: Column(children: [
         Expanded(child: ListView(padding: const EdgeInsets.fromLTRB(18, 10, 18, 24), children: [
           const Padding(padding: EdgeInsets.only(bottom: 18),
             child: Text('Settings', style: TextStyle(fontSize: 25, fontWeight: FontWeight.w600, letterSpacing: -0.5))),
@@ -311,6 +313,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
         ])),
         _buildBottomNav(context),
       ]),
+      ),
     );
   }
 
