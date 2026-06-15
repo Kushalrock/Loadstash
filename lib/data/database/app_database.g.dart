@@ -3,251 +3,6 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
-class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $FoldersTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 100,
-    ),
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-    defaultValue: currentDateAndTime,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, name, createdAt];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'folders';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<Folder> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  Folder map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return Folder(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-    );
-  }
-
-  @override
-  $FoldersTable createAlias(String alias) {
-    return $FoldersTable(attachedDatabase, alias);
-  }
-}
-
-class Folder extends DataClass implements Insertable<Folder> {
-  final int id;
-  final String name;
-  final DateTime createdAt;
-  const Folder({required this.id, required this.name, required this.createdAt});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['name'] = Variable<String>(name);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    return map;
-  }
-
-  FoldersCompanion toCompanion(bool nullToAbsent) {
-    return FoldersCompanion(
-      id: Value(id),
-      name: Value(name),
-      createdAt: Value(createdAt),
-    );
-  }
-
-  factory Folder.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return Folder(
-      id: serializer.fromJson<int>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'name': serializer.toJson<String>(name),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-    };
-  }
-
-  Folder copyWith({int? id, String? name, DateTime? createdAt}) => Folder(
-    id: id ?? this.id,
-    name: name ?? this.name,
-    createdAt: createdAt ?? this.createdAt,
-  );
-  Folder copyWithCompanion(FoldersCompanion data) {
-    return Folder(
-      id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('Folder(')
-          ..write('id: $id, ')
-          ..write('name: $name, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, name, createdAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is Folder &&
-          other.id == this.id &&
-          other.name == this.name &&
-          other.createdAt == this.createdAt);
-}
-
-class FoldersCompanion extends UpdateCompanion<Folder> {
-  final Value<int> id;
-  final Value<String> name;
-  final Value<DateTime> createdAt;
-  const FoldersCompanion({
-    this.id = const Value.absent(),
-    this.name = const Value.absent(),
-    this.createdAt = const Value.absent(),
-  });
-  FoldersCompanion.insert({
-    this.id = const Value.absent(),
-    required String name,
-    this.createdAt = const Value.absent(),
-  }) : name = Value(name);
-  static Insertable<Folder> custom({
-    Expression<int>? id,
-    Expression<String>? name,
-    Expression<DateTime>? createdAt,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (name != null) 'name': name,
-      if (createdAt != null) 'created_at': createdAt,
-    });
-  }
-
-  FoldersCompanion copyWith({
-    Value<int>? id,
-    Value<String>? name,
-    Value<DateTime>? createdAt,
-  }) {
-    return FoldersCompanion(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      createdAt: createdAt ?? this.createdAt,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FoldersCompanion(')
-          ..write('id: $id, ')
-          ..write('name: $name, ')
-          ..write('createdAt: $createdAt')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $PromptsTable extends Prompts with TableInfo<$PromptsTable, Prompt> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -288,19 +43,27 @@ class $PromptsTable extends Prompts with TableInfo<$PromptsTable, Prompt> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _folderIdMeta = const VerificationMeta(
-    'folderId',
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  @override
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _searchTagsMeta = const VerificationMeta(
+    'searchTags',
   );
   @override
-  late final GeneratedColumn<int> folderId = GeneratedColumn<int>(
-    'folder_id',
+  late final GeneratedColumn<String> searchTags = GeneratedColumn<String>(
+    'search_tags',
     aliasedName,
-    true,
-    type: DriftSqlType.int,
+    false,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES folders (id)',
-    ),
+    defaultValue: const Constant('[]'),
   );
   static const VerificationMeta _modelTagsMeta = const VerificationMeta(
     'modelTags',
@@ -371,7 +134,8 @@ class $PromptsTable extends Prompts with TableInfo<$PromptsTable, Prompt> {
     id,
     title,
     body,
-    folderId,
+    path,
+    searchTags,
     modelTags,
     pinned,
     isStarter,
@@ -409,10 +173,16 @@ class $PromptsTable extends Prompts with TableInfo<$PromptsTable, Prompt> {
     } else if (isInserting) {
       context.missing(_bodyMeta);
     }
-    if (data.containsKey('folder_id')) {
+    if (data.containsKey('path')) {
       context.handle(
-        _folderIdMeta,
-        folderId.isAcceptableOrUnknown(data['folder_id']!, _folderIdMeta),
+        _pathMeta,
+        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
+      );
+    }
+    if (data.containsKey('search_tags')) {
+      context.handle(
+        _searchTagsMeta,
+        searchTags.isAcceptableOrUnknown(data['search_tags']!, _searchTagsMeta),
       );
     }
     if (data.containsKey('model_tags')) {
@@ -466,10 +236,14 @@ class $PromptsTable extends Prompts with TableInfo<$PromptsTable, Prompt> {
         DriftSqlType.string,
         data['${effectivePrefix}body'],
       )!,
-      folderId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}folder_id'],
-      ),
+      path: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}path'],
+      )!,
+      searchTags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}search_tags'],
+      )!,
       modelTags: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}model_tags'],
@@ -503,7 +277,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
   final int id;
   final String title;
   final String body;
-  final int? folderId;
+  final String path;
+  final String searchTags;
   final String modelTags;
   final bool pinned;
   final bool isStarter;
@@ -513,7 +288,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
     required this.id,
     required this.title,
     required this.body,
-    this.folderId,
+    required this.path,
+    required this.searchTags,
     required this.modelTags,
     required this.pinned,
     required this.isStarter,
@@ -526,9 +302,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
     map['id'] = Variable<int>(id);
     map['title'] = Variable<String>(title);
     map['body'] = Variable<String>(body);
-    if (!nullToAbsent || folderId != null) {
-      map['folder_id'] = Variable<int>(folderId);
-    }
+    map['path'] = Variable<String>(path);
+    map['search_tags'] = Variable<String>(searchTags);
     map['model_tags'] = Variable<String>(modelTags);
     map['pinned'] = Variable<bool>(pinned);
     map['is_starter'] = Variable<bool>(isStarter);
@@ -542,9 +317,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
       id: Value(id),
       title: Value(title),
       body: Value(body),
-      folderId: folderId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(folderId),
+      path: Value(path),
+      searchTags: Value(searchTags),
       modelTags: Value(modelTags),
       pinned: Value(pinned),
       isStarter: Value(isStarter),
@@ -562,7 +336,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
       id: serializer.fromJson<int>(json['id']),
       title: serializer.fromJson<String>(json['title']),
       body: serializer.fromJson<String>(json['body']),
-      folderId: serializer.fromJson<int?>(json['folderId']),
+      path: serializer.fromJson<String>(json['path']),
+      searchTags: serializer.fromJson<String>(json['searchTags']),
       modelTags: serializer.fromJson<String>(json['modelTags']),
       pinned: serializer.fromJson<bool>(json['pinned']),
       isStarter: serializer.fromJson<bool>(json['isStarter']),
@@ -577,7 +352,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
       'id': serializer.toJson<int>(id),
       'title': serializer.toJson<String>(title),
       'body': serializer.toJson<String>(body),
-      'folderId': serializer.toJson<int?>(folderId),
+      'path': serializer.toJson<String>(path),
+      'searchTags': serializer.toJson<String>(searchTags),
       'modelTags': serializer.toJson<String>(modelTags),
       'pinned': serializer.toJson<bool>(pinned),
       'isStarter': serializer.toJson<bool>(isStarter),
@@ -590,7 +366,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
     int? id,
     String? title,
     String? body,
-    Value<int?> folderId = const Value.absent(),
+    String? path,
+    String? searchTags,
     String? modelTags,
     bool? pinned,
     bool? isStarter,
@@ -600,7 +377,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
     id: id ?? this.id,
     title: title ?? this.title,
     body: body ?? this.body,
-    folderId: folderId.present ? folderId.value : this.folderId,
+    path: path ?? this.path,
+    searchTags: searchTags ?? this.searchTags,
     modelTags: modelTags ?? this.modelTags,
     pinned: pinned ?? this.pinned,
     isStarter: isStarter ?? this.isStarter,
@@ -612,7 +390,10 @@ class Prompt extends DataClass implements Insertable<Prompt> {
       id: data.id.present ? data.id.value : this.id,
       title: data.title.present ? data.title.value : this.title,
       body: data.body.present ? data.body.value : this.body,
-      folderId: data.folderId.present ? data.folderId.value : this.folderId,
+      path: data.path.present ? data.path.value : this.path,
+      searchTags: data.searchTags.present
+          ? data.searchTags.value
+          : this.searchTags,
       modelTags: data.modelTags.present ? data.modelTags.value : this.modelTags,
       pinned: data.pinned.present ? data.pinned.value : this.pinned,
       isStarter: data.isStarter.present ? data.isStarter.value : this.isStarter,
@@ -627,7 +408,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('body: $body, ')
-          ..write('folderId: $folderId, ')
+          ..write('path: $path, ')
+          ..write('searchTags: $searchTags, ')
           ..write('modelTags: $modelTags, ')
           ..write('pinned: $pinned, ')
           ..write('isStarter: $isStarter, ')
@@ -642,7 +424,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
     id,
     title,
     body,
-    folderId,
+    path,
+    searchTags,
     modelTags,
     pinned,
     isStarter,
@@ -656,7 +439,8 @@ class Prompt extends DataClass implements Insertable<Prompt> {
           other.id == this.id &&
           other.title == this.title &&
           other.body == this.body &&
-          other.folderId == this.folderId &&
+          other.path == this.path &&
+          other.searchTags == this.searchTags &&
           other.modelTags == this.modelTags &&
           other.pinned == this.pinned &&
           other.isStarter == this.isStarter &&
@@ -668,7 +452,8 @@ class PromptsCompanion extends UpdateCompanion<Prompt> {
   final Value<int> id;
   final Value<String> title;
   final Value<String> body;
-  final Value<int?> folderId;
+  final Value<String> path;
+  final Value<String> searchTags;
   final Value<String> modelTags;
   final Value<bool> pinned;
   final Value<bool> isStarter;
@@ -678,7 +463,8 @@ class PromptsCompanion extends UpdateCompanion<Prompt> {
     this.id = const Value.absent(),
     this.title = const Value.absent(),
     this.body = const Value.absent(),
-    this.folderId = const Value.absent(),
+    this.path = const Value.absent(),
+    this.searchTags = const Value.absent(),
     this.modelTags = const Value.absent(),
     this.pinned = const Value.absent(),
     this.isStarter = const Value.absent(),
@@ -689,7 +475,8 @@ class PromptsCompanion extends UpdateCompanion<Prompt> {
     this.id = const Value.absent(),
     required String title,
     required String body,
-    this.folderId = const Value.absent(),
+    this.path = const Value.absent(),
+    this.searchTags = const Value.absent(),
     this.modelTags = const Value.absent(),
     this.pinned = const Value.absent(),
     this.isStarter = const Value.absent(),
@@ -701,7 +488,8 @@ class PromptsCompanion extends UpdateCompanion<Prompt> {
     Expression<int>? id,
     Expression<String>? title,
     Expression<String>? body,
-    Expression<int>? folderId,
+    Expression<String>? path,
+    Expression<String>? searchTags,
     Expression<String>? modelTags,
     Expression<bool>? pinned,
     Expression<bool>? isStarter,
@@ -712,7 +500,8 @@ class PromptsCompanion extends UpdateCompanion<Prompt> {
       if (id != null) 'id': id,
       if (title != null) 'title': title,
       if (body != null) 'body': body,
-      if (folderId != null) 'folder_id': folderId,
+      if (path != null) 'path': path,
+      if (searchTags != null) 'search_tags': searchTags,
       if (modelTags != null) 'model_tags': modelTags,
       if (pinned != null) 'pinned': pinned,
       if (isStarter != null) 'is_starter': isStarter,
@@ -725,7 +514,8 @@ class PromptsCompanion extends UpdateCompanion<Prompt> {
     Value<int>? id,
     Value<String>? title,
     Value<String>? body,
-    Value<int?>? folderId,
+    Value<String>? path,
+    Value<String>? searchTags,
     Value<String>? modelTags,
     Value<bool>? pinned,
     Value<bool>? isStarter,
@@ -736,7 +526,8 @@ class PromptsCompanion extends UpdateCompanion<Prompt> {
       id: id ?? this.id,
       title: title ?? this.title,
       body: body ?? this.body,
-      folderId: folderId ?? this.folderId,
+      path: path ?? this.path,
+      searchTags: searchTags ?? this.searchTags,
       modelTags: modelTags ?? this.modelTags,
       pinned: pinned ?? this.pinned,
       isStarter: isStarter ?? this.isStarter,
@@ -757,8 +548,11 @@ class PromptsCompanion extends UpdateCompanion<Prompt> {
     if (body.present) {
       map['body'] = Variable<String>(body.value);
     }
-    if (folderId.present) {
-      map['folder_id'] = Variable<int>(folderId.value);
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
+    }
+    if (searchTags.present) {
+      map['search_tags'] = Variable<String>(searchTags.value);
     }
     if (modelTags.present) {
       map['model_tags'] = Variable<String>(modelTags.value);
@@ -784,7 +578,8 @@ class PromptsCompanion extends UpdateCompanion<Prompt> {
           ..write('id: $id, ')
           ..write('title: $title, ')
           ..write('body: $body, ')
-          ..write('folderId: $folderId, ')
+          ..write('path: $path, ')
+          ..write('searchTags: $searchTags, ')
           ..write('modelTags: $modelTags, ')
           ..write('pinned: $pinned, ')
           ..write('isStarter: $isStarter, ')
@@ -1510,6 +1305,251 @@ class UsageStatsCompanion extends UpdateCompanion<UsageStat> {
   }
 }
 
+class $FoldersTable extends Folders with TableInfo<$FoldersTable, Folder> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FoldersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 100,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'folders';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Folder> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Folder map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Folder(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FoldersTable createAlias(String alias) {
+    return $FoldersTable(attachedDatabase, alias);
+  }
+}
+
+class Folder extends DataClass implements Insertable<Folder> {
+  final int id;
+  final String name;
+  final DateTime createdAt;
+  const Folder({required this.id, required this.name, required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  FoldersCompanion toCompanion(bool nullToAbsent) {
+    return FoldersCompanion(
+      id: Value(id),
+      name: Value(name),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory Folder.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Folder(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  Folder copyWith({int? id, String? name, DateTime? createdAt}) => Folder(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  Folder copyWithCompanion(FoldersCompanion data) {
+    return Folder(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Folder(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Folder &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.createdAt == this.createdAt);
+}
+
+class FoldersCompanion extends UpdateCompanion<Folder> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<DateTime> createdAt;
+  const FoldersCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  FoldersCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.createdAt = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<Folder> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  FoldersCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<DateTime>? createdAt,
+  }) {
+    return FoldersCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FoldersCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1913,26 +1953,25 @@ class PromptTagsCompanion extends UpdateCompanion<PromptTag> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
-  late final $FoldersTable folders = $FoldersTable(this);
   late final $PromptsTable prompts = $PromptsTable(this);
   late final $PromptVariablesTable promptVariables = $PromptVariablesTable(
     this,
   );
   late final $UsageStatsTable usageStats = $UsageStatsTable(this);
+  late final $FoldersTable folders = $FoldersTable(this);
   late final $TagsTable tags = $TagsTable(this);
   late final $PromptTagsTable promptTags = $PromptTagsTable(this);
   late final PromptDao promptDao = PromptDao(this as AppDatabase);
   late final UsageDao usageDao = UsageDao(this as AppDatabase);
-  late final FolderDao folderDao = FolderDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
-    folders,
     prompts,
     promptVariables,
     usageStats,
+    folders,
     tags,
     promptTags,
   ];
@@ -1955,258 +1994,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   ]);
 }
 
-typedef $$FoldersTableCreateCompanionBuilder =
-    FoldersCompanion Function({
-      Value<int> id,
-      required String name,
-      Value<DateTime> createdAt,
-    });
-typedef $$FoldersTableUpdateCompanionBuilder =
-    FoldersCompanion Function({
-      Value<int> id,
-      Value<String> name,
-      Value<DateTime> createdAt,
-    });
-
-final class $$FoldersTableReferences
-    extends BaseReferences<_$AppDatabase, $FoldersTable, Folder> {
-  $$FoldersTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$PromptsTable, List<Prompt>> _promptsRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.prompts,
-    aliasName: $_aliasNameGenerator(db.folders.id, db.prompts.folderId),
-  );
-
-  $$PromptsTableProcessedTableManager get promptsRefs {
-    final manager = $$PromptsTableTableManager(
-      $_db,
-      $_db.prompts,
-    ).filter((f) => f.folderId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_promptsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$FoldersTableFilterComposer
-    extends Composer<_$AppDatabase, $FoldersTable> {
-  $$FoldersTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  Expression<bool> promptsRefs(
-    Expression<bool> Function($$PromptsTableFilterComposer f) f,
-  ) {
-    final $$PromptsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.prompts,
-      getReferencedColumn: (t) => t.folderId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptsTableFilterComposer(
-            $db: $db,
-            $table: $db.prompts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$FoldersTableOrderingComposer
-    extends Composer<_$AppDatabase, $FoldersTable> {
-  $$FoldersTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$FoldersTableAnnotationComposer
-    extends Composer<_$AppDatabase, $FoldersTable> {
-  $$FoldersTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  Expression<T> promptsRefs<T extends Object>(
-    Expression<T> Function($$PromptsTableAnnotationComposer a) f,
-  ) {
-    final $$PromptsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.prompts,
-      getReferencedColumn: (t) => t.folderId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$PromptsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.prompts,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$FoldersTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $FoldersTable,
-          Folder,
-          $$FoldersTableFilterComposer,
-          $$FoldersTableOrderingComposer,
-          $$FoldersTableAnnotationComposer,
-          $$FoldersTableCreateCompanionBuilder,
-          $$FoldersTableUpdateCompanionBuilder,
-          (Folder, $$FoldersTableReferences),
-          Folder,
-          PrefetchHooks Function({bool promptsRefs})
-        > {
-  $$FoldersTableTableManager(_$AppDatabase db, $FoldersTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$FoldersTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$FoldersTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$FoldersTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-              }) => FoldersCompanion(id: id, name: name, createdAt: createdAt),
-          createCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                required String name,
-                Value<DateTime> createdAt = const Value.absent(),
-              }) => FoldersCompanion.insert(
-                id: id,
-                name: name,
-                createdAt: createdAt,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable(table),
-                  $$FoldersTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({promptsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (promptsRefs) db.prompts],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (promptsRefs)
-                    await $_getPrefetchedData<Folder, $FoldersTable, Prompt>(
-                      currentTable: table,
-                      referencedTable: $$FoldersTableReferences
-                          ._promptsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$FoldersTableReferences(db, table, p0).promptsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.folderId == item.id),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$FoldersTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $FoldersTable,
-      Folder,
-      $$FoldersTableFilterComposer,
-      $$FoldersTableOrderingComposer,
-      $$FoldersTableAnnotationComposer,
-      $$FoldersTableCreateCompanionBuilder,
-      $$FoldersTableUpdateCompanionBuilder,
-      (Folder, $$FoldersTableReferences),
-      Folder,
-      PrefetchHooks Function({bool promptsRefs})
-    >;
 typedef $$PromptsTableCreateCompanionBuilder =
     PromptsCompanion Function({
       Value<int> id,
       required String title,
       required String body,
-      Value<int?> folderId,
+      Value<String> path,
+      Value<String> searchTags,
       Value<String> modelTags,
       Value<bool> pinned,
       Value<bool> isStarter,
@@ -2218,7 +2012,8 @@ typedef $$PromptsTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> title,
       Value<String> body,
-      Value<int?> folderId,
+      Value<String> path,
+      Value<String> searchTags,
       Value<String> modelTags,
       Value<bool> pinned,
       Value<bool> isStarter,
@@ -2229,23 +2024,6 @@ typedef $$PromptsTableUpdateCompanionBuilder =
 final class $$PromptsTableReferences
     extends BaseReferences<_$AppDatabase, $PromptsTable, Prompt> {
   $$PromptsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $FoldersTable _folderIdTable(_$AppDatabase db) => db.folders
-      .createAlias($_aliasNameGenerator(db.prompts.folderId, db.folders.id));
-
-  $$FoldersTableProcessedTableManager? get folderId {
-    final $_column = $_itemColumn<int>('folder_id');
-    if ($_column == null) return null;
-    final manager = $$FoldersTableTableManager(
-      $_db,
-      $_db.folders,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_folderIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
 
   static MultiTypedResultKey<$PromptVariablesTable, List<PromptVariable>>
   _promptVariablesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
@@ -2310,6 +2088,16 @@ class $$PromptsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get searchTags => $composableBuilder(
+    column: $table.searchTags,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get modelTags => $composableBuilder(
     column: $table.modelTags,
     builder: (column) => ColumnFilters(column),
@@ -2334,29 +2122,6 @@ class $$PromptsTableFilterComposer
     column: $table.updatedAt,
     builder: (column) => ColumnFilters(column),
   );
-
-  $$FoldersTableFilterComposer get folderId {
-    final $$FoldersTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.folderId,
-      referencedTable: $db.folders,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$FoldersTableFilterComposer(
-            $db: $db,
-            $table: $db.folders,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 
   Expression<bool> promptVariablesRefs(
     Expression<bool> Function($$PromptVariablesTableFilterComposer f) f,
@@ -2433,6 +2198,16 @@ class $$PromptsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get searchTags => $composableBuilder(
+    column: $table.searchTags,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get modelTags => $composableBuilder(
     column: $table.modelTags,
     builder: (column) => ColumnOrderings(column),
@@ -2457,29 +2232,6 @@ class $$PromptsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
-
-  $$FoldersTableOrderingComposer get folderId {
-    final $$FoldersTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.folderId,
-      referencedTable: $db.folders,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$FoldersTableOrderingComposer(
-            $db: $db,
-            $table: $db.folders,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$PromptsTableAnnotationComposer
@@ -2500,6 +2252,14 @@ class $$PromptsTableAnnotationComposer
   GeneratedColumn<String> get body =>
       $composableBuilder(column: $table.body, builder: (column) => column);
 
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<String> get searchTags => $composableBuilder(
+    column: $table.searchTags,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get modelTags =>
       $composableBuilder(column: $table.modelTags, builder: (column) => column);
 
@@ -2514,29 +2274,6 @@ class $$PromptsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
-
-  $$FoldersTableAnnotationComposer get folderId {
-    final $$FoldersTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.folderId,
-      referencedTable: $db.folders,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$FoldersTableAnnotationComposer(
-            $db: $db,
-            $table: $db.folders,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 
   Expression<T> promptVariablesRefs<T extends Object>(
     Expression<T> Function($$PromptVariablesTableAnnotationComposer a) f,
@@ -2603,7 +2340,6 @@ class $$PromptsTableTableManager
           (Prompt, $$PromptsTableReferences),
           Prompt,
           PrefetchHooks Function({
-            bool folderId,
             bool promptVariablesRefs,
             bool usageStatsRefs,
           })
@@ -2624,7 +2360,8 @@ class $$PromptsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<String> body = const Value.absent(),
-                Value<int?> folderId = const Value.absent(),
+                Value<String> path = const Value.absent(),
+                Value<String> searchTags = const Value.absent(),
                 Value<String> modelTags = const Value.absent(),
                 Value<bool> pinned = const Value.absent(),
                 Value<bool> isStarter = const Value.absent(),
@@ -2634,7 +2371,8 @@ class $$PromptsTableTableManager
                 id: id,
                 title: title,
                 body: body,
-                folderId: folderId,
+                path: path,
+                searchTags: searchTags,
                 modelTags: modelTags,
                 pinned: pinned,
                 isStarter: isStarter,
@@ -2646,7 +2384,8 @@ class $$PromptsTableTableManager
                 Value<int> id = const Value.absent(),
                 required String title,
                 required String body,
-                Value<int?> folderId = const Value.absent(),
+                Value<String> path = const Value.absent(),
+                Value<String> searchTags = const Value.absent(),
                 Value<String> modelTags = const Value.absent(),
                 Value<bool> pinned = const Value.absent(),
                 Value<bool> isStarter = const Value.absent(),
@@ -2656,7 +2395,8 @@ class $$PromptsTableTableManager
                 id: id,
                 title: title,
                 body: body,
-                folderId: folderId,
+                path: path,
+                searchTags: searchTags,
                 modelTags: modelTags,
                 pinned: pinned,
                 isStarter: isStarter,
@@ -2672,49 +2412,14 @@ class $$PromptsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({
-                folderId = false,
-                promptVariablesRefs = false,
-                usageStatsRefs = false,
-              }) {
+              ({promptVariablesRefs = false, usageStatsRefs = false}) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (promptVariablesRefs) db.promptVariables,
                     if (usageStatsRefs) db.usageStats,
                   ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (folderId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.folderId,
-                                    referencedTable: $$PromptsTableReferences
-                                        ._folderIdTable(db),
-                                    referencedColumn: $$PromptsTableReferences
-                                        ._folderIdTable(db)
-                                        .id,
-                                  )
-                                  as T;
-                        }
-
-                        return state;
-                      },
+                  addJoins: null,
                   getPrefetchedDataCallback: (items) async {
                     return [
                       if (promptVariablesRefs)
@@ -2779,11 +2484,7 @@ typedef $$PromptsTableProcessedTableManager =
       $$PromptsTableUpdateCompanionBuilder,
       (Prompt, $$PromptsTableReferences),
       Prompt,
-      PrefetchHooks Function({
-        bool folderId,
-        bool promptVariablesRefs,
-        bool usageStatsRefs,
-      })
+      PrefetchHooks Function({bool promptVariablesRefs, bool usageStatsRefs})
     >;
 typedef $$PromptVariablesTableCreateCompanionBuilder =
     PromptVariablesCompanion Function({
@@ -3424,6 +3125,152 @@ typedef $$UsageStatsTableProcessedTableManager =
       UsageStat,
       PrefetchHooks Function({bool promptId})
     >;
+typedef $$FoldersTableCreateCompanionBuilder =
+    FoldersCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<DateTime> createdAt,
+    });
+typedef $$FoldersTableUpdateCompanionBuilder =
+    FoldersCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<DateTime> createdAt,
+    });
+
+class $$FoldersTableFilterComposer
+    extends Composer<_$AppDatabase, $FoldersTable> {
+  $$FoldersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FoldersTableOrderingComposer
+    extends Composer<_$AppDatabase, $FoldersTable> {
+  $$FoldersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FoldersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FoldersTable> {
+  $$FoldersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$FoldersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FoldersTable,
+          Folder,
+          $$FoldersTableFilterComposer,
+          $$FoldersTableOrderingComposer,
+          $$FoldersTableAnnotationComposer,
+          $$FoldersTableCreateCompanionBuilder,
+          $$FoldersTableUpdateCompanionBuilder,
+          (Folder, BaseReferences<_$AppDatabase, $FoldersTable, Folder>),
+          Folder,
+          PrefetchHooks Function()
+        > {
+  $$FoldersTableTableManager(_$AppDatabase db, $FoldersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FoldersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FoldersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FoldersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => FoldersCompanion(id: id, name: name, createdAt: createdAt),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => FoldersCompanion.insert(
+                id: id,
+                name: name,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FoldersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FoldersTable,
+      Folder,
+      $$FoldersTableFilterComposer,
+      $$FoldersTableOrderingComposer,
+      $$FoldersTableAnnotationComposer,
+      $$FoldersTableCreateCompanionBuilder,
+      $$FoldersTableUpdateCompanionBuilder,
+      (Folder, BaseReferences<_$AppDatabase, $FoldersTable, Folder>),
+      Folder,
+      PrefetchHooks Function()
+    >;
 typedef $$TagsTableCreateCompanionBuilder =
     TagsCompanion Function({Value<int> id, required String name});
 typedef $$TagsTableUpdateCompanionBuilder =
@@ -3683,14 +3530,14 @@ typedef $$PromptTagsTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
-  $$FoldersTableTableManager get folders =>
-      $$FoldersTableTableManager(_db, _db.folders);
   $$PromptsTableTableManager get prompts =>
       $$PromptsTableTableManager(_db, _db.prompts);
   $$PromptVariablesTableTableManager get promptVariables =>
       $$PromptVariablesTableTableManager(_db, _db.promptVariables);
   $$UsageStatsTableTableManager get usageStats =>
       $$UsageStatsTableTableManager(_db, _db.usageStats);
+  $$FoldersTableTableManager get folders =>
+      $$FoldersTableTableManager(_db, _db.folders);
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
   $$PromptTagsTableTableManager get promptTags =>
       $$PromptTagsTableTableManager(_db, _db.promptTags);
