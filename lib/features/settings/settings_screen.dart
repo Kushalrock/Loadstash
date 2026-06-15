@@ -1,10 +1,20 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../core/animations/animations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
+import '../../providers/repository_providers.dart';
+import '../../services/export_service.dart';
+import '../../services/import_service.dart';
+import '../../services/prompt_file_parser.dart';
 import '../../services/settings_channel.dart';
+import 'widgets/export_scope_sheet.dart';
+import 'widgets/folder_assignment_sheet.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -91,6 +101,109 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
     if (mounted) setState(() => _bubbleRunning = true);
   }
 
+  Future<void> _onImport() async {
+    // 1. Pick ZIP
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['zip'],
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final bytes = result.files.first.bytes;
+    if (bytes == null) return;
+
+    // 2. Parse ZIP
+    ApmPackage pkg;
+    try {
+      pkg = ImportService.parseZip(bytes);
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Invalid ZIP: $e')));
+      return;
+    }
+
+    if (pkg.prompts.isEmpty) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No prompts found in this ZIP')));
+      return;
+    }
+
+    // 3. Folder assignment for path-less prompts
+    List<String> fallbackPath = [];
+    if (pkg.hasPathlessPrompts && mounted) {
+      final allPrompts = await ref.read(promptRepositoryProvider).getAll();
+      if (!mounted) return;
+      final picked = await showModalBottomSheet<List<String>>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: AppColors.surface2,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        builder: (_) => FolderAssignmentSheet(
+          count: pkg.pathlessCount,
+          allPrompts: allPrompts,
+        ),
+      );
+      if (picked == null) return;
+      fallbackPath = picked;
+    }
+
+    // 4. Import
+    final repo = ref.read(promptRepositoryProvider);
+    final importResult = await ImportService.importParsed(
+        pkg, repo, fallbackPath: fallbackPath);
+
+    if (mounted) {
+      final msg = importResult.skipped > 0
+          ? 'Imported ${importResult.imported} prompts from ${importResult.packName} '
+            '(${importResult.skipped} skipped)'
+          : 'Imported ${importResult.imported} prompts from ${importResult.packName} '
+            'v${importResult.packVersion}';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    }
+  }
+
+  Future<void> _onExport() async {
+    if (!mounted) return;
+
+    // 1. Scope picker
+    final scope = await showModalBottomSheet<ExportScope>(
+      context: context,
+      backgroundColor: AppColors.surface2,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => const ExportScopeSheet(),
+    );
+    if (scope == null) return;
+
+    // 2. Filter prompts
+    final all = await ref.read(promptRepositoryProvider).getAll();
+    final prompts = switch (scope) {
+      ExportScope.all => all,
+      ExportScope.yours => all.where((p) => !p.isStarter).toList(),
+      ExportScope.starters => all.where((p) => p.isStarter).toList(),
+    };
+
+    if (prompts.isEmpty) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No prompts to export')));
+      return;
+    }
+
+    // 3. Build ZIP
+    final zipBytes = await ExportService.buildZip(prompts);
+
+    // 4. Share
+    final tempDir = await getTemporaryDirectory();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final file = File('${tempDir.path}/loadstash-export-$timestamp.zip');
+    await file.writeAsBytes(zipBytes);
+
+    if (mounted) {
+      await Share.shareXFiles([XFile(file.path)], subject: 'Loadstash prompt pack');
+    }
+  }
+
   Future<bool?> _showPermissionDialog({required String title, required String body, required String action}) {
     return showDialog<bool>(
       context: context,
@@ -169,12 +282,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
           // Your library
           _SectionLabel('Your library'),
           _SettingsCard(children: [
-            _SettingsRow(icon: Icons.download_outlined, title: 'Import from YAML', desc: 'Add prompts from a .yaml file',
+            _SettingsRow(icon: Icons.download_outlined, title: 'Import from ZIP', desc: 'Add prompts from an APM .zip pack',
               right: _Badge(label: 'Import', accent: true),
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Import coming soon')))),
-            _SettingsRow(icon: Icons.upload_outlined, title: 'Export to YAML', desc: 'Download all prompts as .yaml',
+              onTap: _onImport),
+            _SettingsRow(icon: Icons.upload_outlined, title: 'Export to ZIP', desc: 'Share prompts as an APM .zip pack',
               right: const _Badge(label: 'Export'),
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Export coming soon')))),
+              onTap: _onExport),
             _SettingsRow(icon: Icons.tag, title: 'Manage tags', desc: 'Search tags and model tags',
               right: const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
               onTap: () => context.push('/tags')),
