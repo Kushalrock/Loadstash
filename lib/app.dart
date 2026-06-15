@@ -26,23 +26,18 @@ final _router = GoRouter(
       path: '/bubble-overlay',
       builder: (_, __) => const OverlayScreen(mode: OverlayMode.bubble),
     ),
+    GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
+    GoRoute(path: '/', builder: (_, __) => const LibraryScreen()),
     GoRoute(
       path: '/prompt',
       builder: (_, state) => PromptDetailScreen(promptId: state.extra as int),
     ),
-    GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
-    ShellRoute(
-      builder: (context, state, child) => AppShell(child: child),
-      routes: [
-        GoRoute(path: '/', builder: (_, __) => const LibraryScreen()),
-        GoRoute(
-          path: '/editor',
-          builder: (_, state) => EditorScreen(promptId: state.extra as int?),
-        ),
-        GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
-        GoRoute(path: '/tags', builder: (_, __) => const TagsScreen()),
-      ],
+    GoRoute(
+      path: '/editor',
+      builder: (_, state) => EditorScreen(promptId: state.extra as int?),
     ),
+    GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
+    GoRoute(path: '/tags', builder: (_, __) => const TagsScreen()),
   ],
 );
 
@@ -62,11 +57,3 @@ class LoadstashApp extends ConsumerWidget {
   }
 }
 
-// AppShell is a passthrough — LibraryScreen and SettingsScreen own their bottom navs.
-class AppShell extends StatelessWidget {
-  const AppShell({super.key, required this.child});
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => child;
-}
