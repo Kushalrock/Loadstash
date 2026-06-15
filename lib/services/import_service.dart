@@ -33,8 +33,8 @@ abstract final class ImportService {
     for (final file in archive.files) {
       if (!file.isFile) continue;
       if (!file.name.endsWith('.prompt.md')) continue;
-      // Accept any .prompt.md under .apm/prompts/ (any depth)
-      if (!file.name.contains('prompts/')) continue;
+      // Accept .prompt.md files under .apm/prompts/ only (prevents path traversal)
+      if (!RegExp(r'^\.apm/prompts/[^/].*\.prompt\.md$').hasMatch(file.name)) continue;
 
       try {
         final content = utf8.decode(file.content as List<int>);
