@@ -9,12 +9,15 @@ import '../../core/animations/animations.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../providers/repository_providers.dart';
+import '../../providers/theme_provider.dart';
 import '../../services/export_service.dart';
 import '../../services/import_service.dart';
+import '../../services/preferences_service.dart';
 import '../../services/prompt_file_parser.dart';
 import '../../services/settings_channel.dart';
 import 'widgets/export_scope_sheet.dart';
 import 'widgets/folder_assignment_sheet.dart';
+import '../library/widgets/folder_picker_sheet.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -27,12 +30,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
   bool _togglingBubble = false;
   bool _pendingEnable = false;
   String _theme = 'dark';
+  List<String> _quickAddPath = [];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _refreshBubbleState();
+    _loadQuickAddPath();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentMode = ref.read(themeModeProvider);
+      setState(() => _theme = currentMode == ThemeMode.light ? 'light' : 'dark');
+    });
   }
 
   @override
@@ -99,6 +108,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
     setState(() => _pendingEnable = false);
     await SettingsChannel.startBubble();
     if (mounted) setState(() => _bubbleRunning = true);
+  }
+
+  Future<void> _loadQuickAddPath() async {
+    final path = await PreferencesService.getQuickAddPath();
+    if (mounted) setState(() => _quickAddPath = path);
+  }
+
+  Future<void> _pickQuickAddLocation() async {
+    final allPrompts = await ref.read(promptRepositoryProvider).getAll();
+    if (!mounted) return;
+    final picked = await showModalBottomSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface2,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (sheetCtx) => FolderPickerSheet(
+        allPrompts: allPrompts,
+        currentPath: _quickAddPath,
+        title: 'Quick add location',
+        onPick: (p) => Navigator.of(sheetCtx).pop(p),
+      ),
+    );
+    if (picked != null) {
+      await PreferencesService.setQuickAddPath(picked);
+      if (mounted) setState(() => _quickAddPath = picked);
+    }
   }
 
   Future<void> _onImport() async {
@@ -277,7 +313,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
           _SectionLabel('Appearance'),
           _SettingsCard(children: [
             _SettingsRow(icon: Icons.brightness_6_outlined, title: 'Theme', desc: 'Choose how Loadstash looks',
-              right: _ThemeToggle(value: _theme, onChanged: (t) => setState(() => _theme = t))),
+              right: _ThemeToggle(value: _theme, onChanged: (t) {
+                setState(() => _theme = t);
+                ref.read(themeModeProvider.notifier).state =
+                    t == 'light' ? ThemeMode.light : ThemeMode.dark;
+                PreferencesService.setThemeMode(t);
+              })),
           ]),
           const SizedBox(height: 20),
 
@@ -293,6 +334,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
             _SettingsRow(icon: Icons.tag, title: 'Manage tags', desc: 'Search tags and model tags',
               right: const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
               onTap: () => context.push('/tags')),
+            _SettingsRow(
+              icon: Icons.folder_outlined,
+              title: 'Quick add location',
+              desc: _quickAddPath.isEmpty ? 'Library (root)' : _quickAddPath.join(' › '),
+              right: const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+              onTap: _pickQuickAddLocation,
+            ),
           ]),
           const SizedBox(height: 20),
 
