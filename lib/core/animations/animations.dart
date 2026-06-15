@@ -19,20 +19,26 @@ class BobWidget extends StatefulWidget {
 }
 class _BobWidgetState extends State<BobWidget> with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
+  late final CurvedAnimation _curved;
   @override
   void initState() {
     super.initState();
     _ctrl = AnimationController(vsync: this, duration: widget.duration);
+    _curved = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
     _ctrl.repeat(reverse: true);
   }
   @override
-  void dispose() { _ctrl.dispose(); super.dispose(); }
+  void dispose() {
+    _curved.dispose();
+    _ctrl.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _ctrl,
       builder: (_, child) {
-        final dy = -widget.amplitude * sin(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut).value * pi);
+        final dy = -widget.amplitude * sin(_curved.value * pi);
         return Transform.translate(offset: Offset(0, dy), child: child);
       },
       child: widget.child,

@@ -200,28 +200,55 @@ class _SectionLabel extends StatelessWidget {
     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: AppColors.textTertiary));
 }
 
-class _SearchBar extends StatelessWidget {
+class _SearchBar extends StatefulWidget {
   const _SearchBar({required this.query, required this.onChanged});
   final String query;
   final ValueChanged<String> onChanged;
   @override
+  State<_SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<_SearchBar> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(text: widget.query);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      height: 42, padding: const EdgeInsets.symmetric(horizontal: 13),
+      height: 42,
+      padding: const EdgeInsets.symmetric(horizontal: 13),
       decoration: BoxDecoration(
         color: AppColors.surface1, borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: query.isNotEmpty ? AppColors.accentDim : AppColors.borderHairline)),
+        border: Border.all(color: widget.query.isNotEmpty ? AppColors.accentDim : AppColors.borderHairline)),
       child: Row(children: [
-        Icon(Icons.search, size: 17, color: query.isNotEmpty ? AppColors.accentText : AppColors.textTertiary),
+        Icon(Icons.search, size: 17,
+            color: widget.query.isNotEmpty ? AppColors.accentText : AppColors.textTertiary),
         const SizedBox(width: 9),
         Expanded(child: TextField(
-          onChanged: onChanged,
+          controller: _ctrl,
+          onChanged: widget.onChanged,
           style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary),
-          decoration: const InputDecoration(border: InputBorder.none,
-              hintText: 'Search prompts, folders, tags',
-              hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 13.5)))),
-        if (query.isNotEmpty) GestureDetector(onTap: () => onChanged(''),
-            child: const Icon(Icons.close, size: 16, color: AppColors.textTertiary)),
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            hintText: 'Search prompts, folders, tags',
+            hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 13.5)))),
+        if (widget.query.isNotEmpty) GestureDetector(
+          onTap: () {
+            _ctrl.clear();
+            widget.onChanged('');
+          },
+          child: const Icon(Icons.close, size: 16, color: AppColors.textTertiary)),
       ]),
     );
   }

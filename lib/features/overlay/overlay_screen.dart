@@ -35,6 +35,9 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
   }
 
   Future<void> _init() async {
+    // Reset filter state on each launch
+    _query = '';
+    _modelFilter = null;
     String callingPkg = '';
     if (widget.mode == OverlayMode.processText) {
       final intentData = await ProcessTextChannel.getIntentData();
@@ -89,7 +92,8 @@ class _OverlayScreenState extends ConsumerState<OverlayScreen> {
   List<Prompt> get _filtered {
     var result = _prompts;
     if (_modelFilter != null) {
-      result = result.where((p) => p.modelTags.split(',').contains(_modelFilter!)).toList();
+      result = result.where((p) =>
+          p.modelTags.split(',').map((s) => s.trim()).contains(_modelFilter!)).toList();
     }
     if (_query.isEmpty) return result;
     final q = _query.toLowerCase();

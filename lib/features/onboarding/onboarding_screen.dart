@@ -49,7 +49,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       backgroundColor: AppColors.bgBase,
       body: SafeArea(child: Column(children: [
         _ObDots(step: _step),
-        _ObHeader(step: _step, onSkip: _step < 5 ? () => context.go('/') : null),
+        _ObHeader(
+          step: _step,
+          onSkip: _step < 5 ? () async {
+            await PreferencesService.markOnboardingDone();
+            if (mounted) context.go('/');
+          } : null,
+        ),
         Expanded(child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           child: KeyedSubtree(key: ValueKey(_step), child: switch (_step) {
