@@ -10,6 +10,7 @@ import 'features/settings/tags_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'features/prompt_detail/prompt_detail_screen.dart';
 import 'services/preferences_service.dart';
+import 'providers/theme_provider.dart';
 
 final _router = GoRouter(
   redirect: (context, state) async {
@@ -46,11 +47,12 @@ class LoadstashApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
     return MaterialApp.router(
       title: 'Loadstash',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.dark,
+      themeMode: themeMode,
       routerConfig: _router,
       debugShowCheckedModeBanner: false,
     );

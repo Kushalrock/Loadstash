@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/model_tag_service.dart';
 
 abstract final class AppColors {
   // Dark palette
@@ -32,11 +33,6 @@ abstract final class AppColors {
   static const modelGemini = Color(0xFF5B9CF6);   // Google blue
   static const modelLocal = Color(0xFF8A909C);    // neutral grey
 
-  // Model color by key
-  static Color forModel(String key) => switch (key) {
-    'claude' => modelClaude,
-    'chatgpt' => modelChatGpt,
-    'gemini' => modelGemini,
-    _ => modelLocal,
-  };
+  // Model color by key — delegates to ModelTagService for user-customisable colours
+  static Color forModel(String key) => ModelTagService.colorForKey(key);
 }
