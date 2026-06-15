@@ -4,14 +4,16 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/database/app_database.dart';
+import '../../data/repositories/prompt_repository.dart';
+import '../../providers/prompt_provider.dart';
 import '../../providers/repository_providers.dart';
 import '../../services/variable_detector.dart';
+import '../library/widgets/folder_picker_sheet.dart';
 import 'widgets/variable_preview.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key, this.promptId});
   final int? promptId;
-
   @override
   ConsumerState<EditorScreen> createState() => _EditorScreenState();
 }
@@ -19,13 +21,22 @@ class EditorScreen extends ConsumerStatefulWidget {
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   final _titleCtrl = TextEditingController();
   final _bodyCtrl = TextEditingController();
+  final _newTagCtrl = TextEditingController();
   bool _pinned = false;
-  String _modelTags = '';
+  List<String> _path = [];
+  List<String> _searchTags = [];
+  List<String> _models = [];
   List<String> _detectedVars = [];
   bool _loading = true;
-  Prompt? _existing;
+  int? _existingId;
+  bool _showFolderPicker = false;
 
-  static const _modelOptions = ['claude', 'chatgpt', 'gemini', 'local', 'image'];
+  static const _modelOptions = [
+    ('claude', 'Claude'),
+    ('chatgpt', 'ChatGPT'),
+    ('gemini', 'Gemini'),
+    ('local', 'Local'),
+  ];
 
   @override
   void initState() {
@@ -39,11 +50,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
       final p = await ref.read(promptRepositoryProvider).getById(widget.promptId!);
       if (p != null && mounted) {
         setState(() {
-          _existing = p;
+          _existingId = p.id;
           _titleCtrl.text = p.title;
           _bodyCtrl.text = p.body;
           _pinned = p.pinned;
-          _modelTags = p.modelTags;
+          _path = PromptRepository.decodePath(p.path);
+          _searchTags = PromptRepository.decodePath(p.searchTags);
+          _models = p.modelTags.split(',').where((s) => s.isNotEmpty).toList();
           _detectedVars = VariableDetector.detect(p.body);
         });
       }
@@ -52,69 +65,51 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   }
 
   void _onBodyChanged() {
-    setState(() {
-      _detectedVars = VariableDetector.detect(_bodyCtrl.text);
-    });
+    setState(() => _detectedVars = VariableDetector.detect(_bodyCtrl.text));
   }
 
   Future<void> _save() async {
     final title = _titleCtrl.text.trim();
     final body = _bodyCtrl.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Title is required')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Title is required')));
       return;
     }
-
     final repo = ref.read(promptRepositoryProvider);
-    if (_existing != null) {
-      await repo.update(
-        id: _existing!.id,
-        title: title,
-        body: body,
-        pinned: _pinned,
-        modelTags: _modelTags,
-      );
+    final modelTags = _models.join(',');
+    if (_existingId != null) {
+      await repo.update(id: _existingId!, title: title, body: body,
+          path: _path, searchTags: _searchTags, modelTags: modelTags, pinned: _pinned);
     } else {
-      await repo.create(title: title, body: body, pinned: _pinned, modelTags: _modelTags);
+      await repo.create(title: title, body: body,
+          path: _path, searchTags: _searchTags, modelTags: modelTags, pinned: _pinned);
     }
-
     if (mounted) {
       if (_detectedVars.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Detected ${_detectedVars.length} variable(s): ${_detectedVars.join(', ')}',
-            ),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(
+            'Detected ${_detectedVars.length} variable(s): ${_detectedVars.join(', ')}')));
       }
       context.pop();
     }
   }
 
   Future<void> _delete() async {
-    if (_existing == null) return;
+    if (_existingId == null) return;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         backgroundColor: AppColors.surface2,
         title: const Text('Delete prompt?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogCtx, false),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary))),
+          TextButton(onPressed: () => Navigator.pop(dialogCtx, true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red))),
         ],
       ),
     );
     if (confirmed == true && mounted) {
-      await ref.read(promptRepositoryProvider).delete(_existing!.id);
+      await ref.read(promptRepositoryProvider).delete(_existingId!);
       if (mounted) context.pop();
     }
   }
@@ -124,105 +119,225 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     _bodyCtrl.removeListener(_onBodyChanged);
     _titleCtrl.dispose();
     _bodyCtrl.dispose();
+    _newTagCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: AppColors.accent)),
-      );
-    }
+    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.accent)));
+    final allAsync = ref.watch(promptsStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _existing == null ? 'New prompt' : 'Edit prompt',
-          style: AppTypography.label,
-        ),
-        backgroundColor: AppColors.bgBase,
-        elevation: 0,
+        backgroundColor: AppColors.bgBase, elevation: 0,
+        leading: TextButton(
+          onPressed: () => context.pop(),
+          child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontSize: 14))),
+        leadingWidth: 80,
+        title: Text(_existingId == null ? 'New prompt' : 'Edit prompt', style: AppTypography.label),
         actions: [
-          if (_existing != null)
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.red),
-              onPressed: _delete,
-            ),
+          if (_existingId != null)
+            IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: _delete),
           TextButton(
             onPressed: _save,
-            child: const Text(
-              'Save',
-              style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600),
-            ),
-          ),
+            child: const Text('Save', style: TextStyle(color: AppColors.accentText, fontWeight: FontWeight.w600, fontSize: 14))),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            controller: _titleCtrl,
-            style: AppTypography.label,
-            decoration: const InputDecoration(hintText: 'Title', labelText: 'Title'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
+      body: Stack(children: [
+        ListView(padding: const EdgeInsets.all(16), children: [
+          _Field('Title', TextField(
+            controller: _titleCtrl, style: AppTypography.label,
+            decoration: const InputDecoration(hintText: 'Name your prompt', labelText: 'Title'))),
+          _Field('Prompt', TextField(
             controller: _bodyCtrl,
-            style: AppTypography.mono,
+            style: const TextStyle(fontFamily: 'JetBrainsMono', fontSize: 13, color: AppColors.textPrimary, height: 1.65),
             maxLines: 8,
             decoration: const InputDecoration(
-              hintText: 'Prompt body — use {{variable}} for fill-in fields',
-              labelText: 'Body',
-              alignLabelWithHint: true,
-            ),
-          ),
-          const SizedBox(height: 16),
+              hintText: 'Write your prompt. Wrap variables in {{braces}}.',
+              labelText: 'Body', alignLabelWithHint: true))),
           if (_bodyCtrl.text.isNotEmpty) ...[
-            Text(
-              'Preview',
-              style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
-            ),
+            const SizedBox(height: 8),
+            _SectionLabel('Preview'),
             const SizedBox(height: 6),
             VariablePreview(body: _bodyCtrl.text, variableNames: _detectedVars),
             const SizedBox(height: 16),
-          ],
-          Text(
-            'Model tags',
-            style: AppTypography.bodySmall.copyWith(color: AppColors.textTertiary),
-          ),
+          ] else const SizedBox(height: 16),
+
+          // Folder picker
+          _SectionLabel('Folder'),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: _modelOptions.map((m) {
-              final selected = _modelTags.split(',').contains(m);
-              return FilterChip(
-                label: Text(m),
-                selected: selected,
-                onSelected: (v) {
-                  final tags = _modelTags.split(',').where((t) => t.isNotEmpty).toList();
-                  if (v) {
-                    tags.add(m);
-                  } else {
-                    tags.remove(m);
-                  }
-                  setState(() => _modelTags = tags.join(','));
-                },
-              );
-            }).toList(),
+          GestureDetector(
+            onTap: () => setState(() => _showFolderPicker = true),
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.surface1, borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: AppColors.borderHairline)),
+              child: Row(children: [
+                Container(width: 34, height: 34,
+                  decoration: BoxDecoration(color: AppColors.accentTint, borderRadius: BorderRadius.circular(9)),
+                  child: const Icon(Icons.folder_outlined, size: 17, color: AppColors.accentText)),
+                const SizedBox(width: 11),
+                Expanded(child: _path.isEmpty
+                  ? const Text('Library (root)', style: TextStyle(fontSize: 13.5, color: AppColors.textSecondary))
+                  : Text(['Library', ..._path].join(' › '),
+                      style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                      overflow: TextOverflow.ellipsis)),
+                const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+              ]),
+            ),
           ),
-          const SizedBox(height: 12),
-          SwitchListTile(
-            title: Text('Pinned', style: AppTypography.label),
-            subtitle: Text('Always shows first in overlay', style: AppTypography.bodySmall),
-            value: _pinned,
-            onChanged: (v) => setState(() => _pinned = v),
-            activeColor: AppColors.accent,
-            contentPadding: EdgeInsets.zero,
-          ),
-          const SizedBox(height: 40),
-        ],
-      ),
+          const SizedBox(height: 20),
+
+          // Models
+          _SectionLabel('Models'),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: _modelOptions.map((entry) {
+            final (key, label) = entry;
+            final selected = _models.contains(key);
+            final color = AppColors.forModel(key);
+            return GestureDetector(
+              onTap: () => setState(() { if (selected) _models.remove(key); else _models.add(key); }),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+                decoration: BoxDecoration(
+                  color: selected ? color.withOpacity(0.13) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: selected ? color.withOpacity(0.47) : AppColors.borderHairline)),
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
+                  const SizedBox(width: 6),
+                  Text(label, style: TextStyle(fontSize: 12.5,
+                      color: selected ? AppColors.textPrimary : AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                  if (selected) ...[const SizedBox(width: 5), const Icon(Icons.check, size: 13, color: AppColors.textPrimary)],
+                ])));
+          }).toList()),
+          const SizedBox(height: 20),
+
+          // Search tags
+          _SectionLabel('Search tags'),
+          const SizedBox(height: 8),
+          if (_searchTags.isNotEmpty) ...[
+            Wrap(spacing: 7, runSpacing: 6, children: _searchTags.map((t) =>
+              GestureDetector(
+                onTap: () => setState(() => _searchTags.remove(t)),
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(10, 3, 8, 3),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0x33FFFFFF)),
+                    borderRadius: BorderRadius.circular(999)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Text('#', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+                    Text(t, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                    const SizedBox(width: 5),
+                    const Icon(Icons.close, size: 12, color: AppColors.textTertiary),
+                  ]),
+                ))).toList()),
+            const SizedBox(height: 10),
+          ],
+          Row(children: [
+            Expanded(child: TextField(
+              controller: _newTagCtrl,
+              style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary),
+              decoration: const InputDecoration(hintText: 'add a search tag'))),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () {
+                final tag = _newTagCtrl.text.trim();
+                if (tag.isNotEmpty && !_searchTags.contains(tag)) {
+                  setState(() { _searchTags.add(tag); _newTagCtrl.clear(); });
+                }
+              },
+              child: Container(
+                height: 42, padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.surface1, borderRadius: BorderRadius.circular(11),
+                  border: Border.all(color: AppColors.borderHairline)),
+                child: const Row(children: [
+                  Icon(Icons.add, size: 15, color: AppColors.textSecondary),
+                  SizedBox(width: 4),
+                  Text('Add', style: TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+                ]))),
+          ]),
+          const SizedBox(height: 20),
+
+          // Pin
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            decoration: BoxDecoration(color: AppColors.surface1, borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: AppColors.borderHairline)),
+            child: SwitchListTile(
+              title: Text('Pinned', style: AppTypography.label),
+              subtitle: Text('Always shows first in overlay', style: AppTypography.bodySmall),
+              value: _pinned, onChanged: (v) => setState(() => _pinned = v),
+              activeColor: AppColors.accent, contentPadding: EdgeInsets.zero)),
+          const SizedBox(height: 80),
+        ]),
+
+        // Bottom save button
+        Positioned(left: 0, right: 0, bottom: 0, child: Container(
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+          color: AppColors.bgBase,
+          child: FilledButton(
+            onPressed: _save,
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.check, size: 17),
+              const SizedBox(width: 8),
+              Text(_existingId == null ? 'Create prompt' : 'Save changes',
+                  style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600)),
+            ])))),
+
+        // Folder picker overlay
+        if (_showFolderPicker)
+          allAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (all) => GestureDetector(
+              onTap: () => setState(() => _showFolderPicker = false),
+              child: Container(color: Colors.black54,
+                child: Align(alignment: Alignment.bottomCenter,
+                  child: GestureDetector(onTap: () {},
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: AppColors.surface2,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                        border: Border(top: BorderSide(color: AppColors.borderHairline))),
+                      child: Column(mainAxisSize: MainAxisSize.min, children: [
+                        const Padding(padding: EdgeInsets.only(top: 10), child: Center(child: SizedBox(width: 38, height: 4.5,
+                          child: DecoratedBox(decoration: BoxDecoration(color: Color(0x2EFFFFFF),
+                              borderRadius: BorderRadius.all(Radius.circular(999))))))),
+                        FolderPickerSheet(
+                          allPrompts: all, currentPath: _path,
+                          onPick: (p) => setState(() { _path = p; _showFolderPicker = false; })),
+                      ]),
+                    ),
+                  ),
+                ),
+              ),
+            )),
+      ]),
     );
   }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+  final String text;
+  @override
+  Widget build(BuildContext context) => Text(text.toUpperCase(),
+    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: AppColors.textTertiary));
+}
+
+class _Field extends StatelessWidget {
+  const _Field(this.label, this.child);
+  final String label;
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    _SectionLabel(label), const SizedBox(height: 6), child, const SizedBox(height: 16)]);
 }
