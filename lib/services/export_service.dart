@@ -111,5 +111,6 @@ abstract final class ExportService {
     return s;
   }
 
-  static String _yamlList(List<String> list) => '[${list.join(', ')}]';
+  static String _yamlList(List<String> list) =>
+    '[${list.map(_yamlStr).join(', ')}]';
 }
