@@ -22,6 +22,9 @@ class PromptDao extends DatabaseAccessor<AppDatabase> with _$PromptDaoMixin {
 
   Future<bool> updatePrompt(PromptsCompanion entry) => update(prompts).replace(entry);
 
+  Future<int> patchPrompt(int id, PromptsCompanion entry) =>
+      (update(prompts)..where((t) => t.id.equals(id))).write(entry);
+
   Future<int> deletePrompt(int id) =>
       (delete(prompts)..where((t) => t.id.equals(id))).go();
 

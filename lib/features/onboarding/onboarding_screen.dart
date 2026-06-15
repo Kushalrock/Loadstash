@@ -44,9 +44,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       final repo = ref.read(promptRepositoryProvider);
       for (final p in kStarterPrompts) {
         await repo.create(
-          title: p['title']!,
-          body: p['body']!,
-          modelTags: p['modelTags']!,
+          title: p['title'] as String,
+          body: p['body'] as String,
+          modelTags: p['modelTags'] as String? ?? '',
+          path: List<String>.from(p['path'] as List? ?? const []),
+          searchTags: List<String>.from(p['searchTags'] as List? ?? const []),
           isStarter: true,
         );
       }
