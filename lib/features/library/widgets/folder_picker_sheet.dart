@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_context_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/repositories/prompt_repository.dart';
@@ -29,8 +29,8 @@ class FolderPickerSheet extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(title, style: AppTypography.screenTitle.copyWith(fontSize: 17)),
             const SizedBox(height: 2),
-            const Text('Pick where this prompt lives',
-                style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+            Text('Pick where this prompt lives',
+                style: TextStyle(fontSize: 12, color: context.cText3)),
           ]),
         ),
         ConstrainedBox(
@@ -48,25 +48,25 @@ class FolderPickerSheet extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 2),
                   padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),
                   decoration: BoxDecoration(
-                    color: selected ? AppColors.accentTint : Colors.transparent,
+                    color: selected ? context.cAccentTint : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: selected ? AppColors.accentDim : Colors.transparent),
+                    border: Border.all(color: selected ? context.cAccentDim : Colors.transparent),
                   ),
                   child: Row(children: [
                     Icon(pa.isEmpty ? Icons.book_outlined : Icons.folder_outlined,
-                        size: 18, color: selected ? AppColors.accentText : AppColors.textSecondary),
+                        size: 18, color: selected ? context.cAccentText : context.cText2),
                     const SizedBox(width: 11),
                     Expanded(child: pa.isEmpty
                       ? Text('Library (root)', style: AppTypography.label.copyWith(fontSize: 13.5))
                       : Wrap(children: [
                           for (var j = 0; j < pa.length; j++) ...[
                             if (j > 0) Text(' › ', style: TextStyle(fontSize: 13,
-                                color: selected ? AppColors.accentText : AppColors.textTertiary)),
+                                color: selected ? context.cAccentText : context.cText3)),
                             Text(pa[j], style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500,
-                                color: selected ? AppColors.accentText : AppColors.textPrimary)),
+                                color: selected ? context.cAccentText : context.cText1)),
                           ],
                         ])),
-                    if (selected) const Icon(Icons.check, size: 17, color: AppColors.accentText),
+                    if (selected) Icon(Icons.check, size: 17, color: context.cAccentText),
                   ]),
                 ),
               );

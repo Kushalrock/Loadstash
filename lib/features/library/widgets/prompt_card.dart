@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_context_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/database/app_database.dart';
 import '../../../data/repositories/prompt_repository.dart';
@@ -20,9 +21,9 @@ class PromptCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
         decoration: BoxDecoration(
-          color: AppColors.surface1,
+          color: context.cSurface1,
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: AppColors.borderHairline),
+          border: Border.all(color: context.cBorder),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,7 +44,7 @@ class PromptCard extends StatelessWidget {
                   )),
                   if (prompt.pinned) ...[
                     const SizedBox(width: 4),
-                    const Icon(Icons.push_pin, size: 13, color: AppColors.accent),
+                    Icon(Icons.push_pin, size: 13, color: context.cAccent),
                   ],
                 ]),
               ],
@@ -53,14 +54,14 @@ class PromptCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
               decoration: BoxDecoration(
-                color: const Color(0x0DFFFFFF),
+                color: context.cCodeBg,
                 borderRadius: BorderRadius.circular(9),
-                border: Border.all(color: AppColors.borderHairline2),
+                border: Border.all(color: context.cBorder2),
               ),
               child: Text(
                 prompt.body.replaceAll(RegExp(r'\{\{(\w+)\}\}'), r'$1').replaceAll('\n', ' '),
-                style: const TextStyle(fontFamily: 'JetBrainsMono', fontSize: 11.5,
-                    color: AppColors.textSecondary, height: 1.4),
+                style: TextStyle(fontFamily: 'JetBrainsMono', fontSize: 11.5,
+                    color: context.cText2, height: 1.4),
                 maxLines: 1, overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -91,10 +92,10 @@ class _PathCrumb extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         for (var i = 0; i < segments.length; i++) ...[
-          if (i > 0) const Padding(padding: EdgeInsets.symmetric(horizontal: 5),
-              child: Text('›', style: TextStyle(fontSize: 11, color: AppColors.textTertiary))),
-          Text(segments[i], style: const TextStyle(fontSize: 11,
-              color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+          if (i > 0) Padding(padding: const EdgeInsets.symmetric(horizontal: 5),
+              child: Text('›', style: TextStyle(fontSize: 11, color: context.cText3))),
+          Text(segments[i], style: TextStyle(fontSize: 11,
+              color: context.cText2, fontWeight: FontWeight.w500)),
         ],
       ],
     );
@@ -110,12 +111,12 @@ class _TagChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 3, 10, 3),
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0x33FFFFFF)),
+        border: Border.all(color: context.cTagBorder),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const Text('#', style: TextStyle(fontSize: 11, color: AppColors.textTertiary, fontWeight: FontWeight.w400)),
-        Text(tag, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+        Text('#', style: TextStyle(fontSize: 11, color: context.cText3, fontWeight: FontWeight.w400)),
+        Text(tag, style: TextStyle(fontSize: 11, color: context.cText2, fontWeight: FontWeight.w500)),
       ]),
     );
   }

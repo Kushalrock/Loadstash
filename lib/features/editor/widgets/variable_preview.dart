@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_context_colors.dart';
 import '../../../core/theme/app_typography.dart';
 
 class VariablePreview extends StatelessWidget {
@@ -14,12 +14,12 @@ class VariablePreview extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.surface1,
+          color: context.cSurface1,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.borderHairline),
+          border: Border.all(color: context.cBorder),
         ),
         child: Text('Preview appears here…',
-            style: AppTypography.monoSmall.copyWith(color: AppColors.textTertiary)),
+            style: AppTypography.monoSmall.copyWith(color: context.cText3)),
       );
     }
 
@@ -35,11 +35,11 @@ class VariablePreview extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 1),
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
           decoration: BoxDecoration(
-            color: AppColors.accentTint,
+            color: context.cAccentTint,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Text(m.group(0)!,
-              style: AppTypography.monoSmall.copyWith(color: AppColors.accent)),
+              style: AppTypography.monoSmall.copyWith(color: context.cAccent)),
         ),
       ));
       lastEnd = m.end;
@@ -52,9 +52,9 @@ class VariablePreview extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface1,
+        color: context.cSurface1,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.borderHairline),
+        border: Border.all(color: context.cBorder),
       ),
       child: RichText(
         text: TextSpan(style: AppTypography.monoSmall, children: spans),

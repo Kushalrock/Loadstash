@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_context_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/prompt_repository.dart';
@@ -29,7 +29,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
       body: SafeArea(
         bottom: false,
         child: allAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.accent)),
+          loading: () => Center(child: CircularProgressIndicator(color: context.cAccent)),
           error: (e, _) => Center(child: Text('$e')),
           data: (all) => _buildBody(context, all),
         ),
@@ -69,7 +69,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   Text(_path.last, style: AppTypography.screenTitle.copyWith(fontSize: 19, letterSpacing: -0.2),
                       overflow: TextOverflow.ellipsis),
                   Text(['Library', ..._path.sublist(0, _path.length - 1)].join(' › '),
-                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 11, color: context.cText2, fontWeight: FontWeight.w500),
                       overflow: TextOverflow.ellipsis),
                 ])),
                 _IconBtn(icon: Icons.add, onTap: () => setState(() => _showNewFolder = true)),
@@ -83,7 +83,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           SliverPadding(padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
             sliver: SliverToBoxAdapter(child: Text(
               '${searchResults.length} result${searchResults.length == 1 ? '' : 's'} for "$_query"',
-              style: AppTypography.bodySmall.copyWith(fontSize: 12, color: AppColors.textTertiary)))),
+              style: AppTypography.bodySmall.copyWith(fontSize: 12, color: context.cText3)))),
           SliverPadding(padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
             sliver: SliverList.separated(
               itemCount: searchResults.length,
@@ -129,9 +129,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
               )),
           ],
           if (contents.folders.isEmpty && contents.prompts.isEmpty && !atRoot)
-            const SliverFillRemaining(child: Center(
+            SliverFillRemaining(child: Center(
               child: Text('No prompts here yet.',
-                  style: TextStyle(color: AppColors.textTertiary)))),
+                  style: TextStyle(color: context.cText3)))),
         ],
       ]),
 
@@ -142,14 +142,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             child: Align(alignment: Alignment.bottomCenter,
               child: GestureDetector(onTap: () {},
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.surface2,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                    border: Border(top: BorderSide(color: AppColors.borderHairline))),
+                  decoration: BoxDecoration(
+                    color: context.cSurface2,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                    border: Border(top: BorderSide(color: context.cBorder))),
                   child: Column(mainAxisSize: MainAxisSize.min, children: [
-                    const Padding(padding: EdgeInsets.only(top: 10), child: Center(child: SizedBox(width: 38, height: 4.5,
-                      child: DecoratedBox(decoration: BoxDecoration(color: Color(0x2EFFFFFF),
-                          borderRadius: BorderRadius.all(Radius.circular(999))))))),
+                    Padding(padding: const EdgeInsets.only(top: 10), child: Center(child: SizedBox(width: 38, height: 4.5,
+                      child: DecoratedBox(decoration: BoxDecoration(color: context.cSheetHandle,
+                          borderRadius: const BorderRadius.all(Radius.circular(999))))))),
                     NewFolderSheet(
                       currentPath: _path,
                       onCreate: (name) {
@@ -170,9 +170,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   Widget _buildBottomNav(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(26, 8, 26, 6),
-      decoration: const BoxDecoration(
-        color: AppColors.bgBase,
-        border: Border(top: BorderSide(color: AppColors.borderHairline))),
+      decoration: BoxDecoration(
+        color: context.cBgBase,
+        border: Border(top: BorderSide(color: context.cBorder))),
       child: Row(children: [
         _NavItem(icon: Icons.book_outlined, label: 'Library', active: true, onTap: () {}),
         const Spacer(),
@@ -181,8 +181,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
           child: Container(
             width: 52, height: 52, margin: const EdgeInsets.only(bottom: 22),
             decoration: BoxDecoration(
-              color: AppColors.accent, borderRadius: BorderRadius.circular(17),
-              boxShadow: [BoxShadow(color: AppColors.accent.withOpacity(0.6), blurRadius: 22, offset: const Offset(0, 8))]),
+              color: context.cAccent, borderRadius: BorderRadius.circular(17),
+              boxShadow: [BoxShadow(color: context.cAccent.withOpacity(0.6), blurRadius: 22, offset: const Offset(0, 8))]),
             child: const Icon(Icons.add, color: Colors.white, size: 26))),
         const Spacer(),
         _NavItem(icon: Icons.settings_outlined, label: 'Settings', active: false,
@@ -197,7 +197,7 @@ class _SectionLabel extends StatelessWidget {
   final String text;
   @override
   Widget build(BuildContext context) => Text(text.toUpperCase(),
-    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: AppColors.textTertiary));
+    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: context.cText3));
 }
 
 class _SearchBar extends StatefulWidget {
@@ -229,26 +229,26 @@ class _SearchBarState extends State<_SearchBar> {
       height: 42,
       padding: const EdgeInsets.symmetric(horizontal: 13),
       decoration: BoxDecoration(
-        color: AppColors.surface1, borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: widget.query.isNotEmpty ? AppColors.accentDim : AppColors.borderHairline)),
+        color: context.cSurface1, borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: widget.query.isNotEmpty ? context.cAccentDim : context.cBorder)),
       child: Row(children: [
         Icon(Icons.search, size: 17,
-            color: widget.query.isNotEmpty ? AppColors.accentText : AppColors.textTertiary),
+            color: widget.query.isNotEmpty ? context.cAccentText : context.cText3),
         const SizedBox(width: 9),
         Expanded(child: TextField(
           controller: _ctrl,
           onChanged: widget.onChanged,
-          style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary),
-          decoration: const InputDecoration(
+          style: TextStyle(fontSize: 13.5, color: context.cText1),
+          decoration: InputDecoration(
             border: InputBorder.none,
             hintText: 'Search prompts, folders, tags',
-            hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 13.5)))),
+            hintStyle: TextStyle(color: context.cText3, fontSize: 13.5)))),
         if (widget.query.isNotEmpty) GestureDetector(
           onTap: () {
             _ctrl.clear();
             widget.onChanged('');
           },
-          child: const Icon(Icons.close, size: 16, color: AppColors.textTertiary)),
+          child: Icon(Icons.close, size: 16, color: context.cText3)),
       ]),
     );
   }
@@ -260,9 +260,9 @@ class _BackBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(onTap: onTap,
     child: Container(width: 34, height: 34,
-      decoration: BoxDecoration(color: AppColors.surface1, borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.borderHairline)),
-      child: const Icon(Icons.arrow_back, size: 18, color: AppColors.textPrimary)));
+      decoration: BoxDecoration(color: context.cSurface1, borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: context.cBorder)),
+      child: Icon(Icons.arrow_back, size: 18, color: context.cText1)));
 }
 
 class _IconBtn extends StatelessWidget {
@@ -272,9 +272,9 @@ class _IconBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(onTap: onTap,
     child: Container(width: 38, height: 38,
-      decoration: BoxDecoration(color: AppColors.surface1, borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.borderHairline)),
-      child: Icon(icon, size: 20, color: AppColors.textPrimary)));
+      decoration: BoxDecoration(color: context.cSurface1, borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: context.cBorder)),
+      child: Icon(icon, size: 20, color: context.cText1)));
 }
 
 class _NavItem extends StatelessWidget {
@@ -283,10 +283,10 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(onTap: onTap,
     child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(icon, size: 22, color: active ? AppColors.accentText : AppColors.textTertiary),
+      Icon(icon, size: 22, color: active ? context.cAccentText : context.cText3),
       const SizedBox(height: 4),
       Text(label, style: TextStyle(fontSize: 10.5,
           fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-          color: active ? AppColors.accentText : AppColors.textTertiary)),
+          color: active ? context.cAccentText : context.cText3)),
     ]));
 }

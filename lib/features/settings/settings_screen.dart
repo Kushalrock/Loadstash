@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/animations/animations.dart';
 import '../../core/theme/app_assets.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_context_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../providers/repository_providers.dart';
 import '../../providers/theme_provider.dart';
@@ -123,7 +124,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
     final picked = await showModalBottomSheet<List<String>>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface2,
+      backgroundColor: context.cSurface2,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (sheetCtx) => FolderPickerSheet(
@@ -174,7 +175,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
       final picked = await showModalBottomSheet<List<String>>(
         context: context,
         isScrollControlled: true,
-        backgroundColor: AppColors.surface2,
+        backgroundColor: context.cSurface2,
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
         builder: (_) => FolderAssignmentSheet(
@@ -207,7 +208,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
     // 1. Scope picker
     final scope = await showModalBottomSheet<ExportScope>(
       context: context,
-      backgroundColor: AppColors.surface2,
+      backgroundColor: context.cSurface2,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => const ExportScopeSheet(),
@@ -246,14 +247,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
     return showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        backgroundColor: AppColors.surface2,
+        backgroundColor: context.cSurface2,
         title: Text(title, style: AppTypography.label),
         content: Text(body, style: AppTypography.bodySmall),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogCtx, false),
-              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary))),
+              child: Text('Cancel', style: TextStyle(color: context.cText2))),
           TextButton(onPressed: () => Navigator.pop(dialogCtx, true),
-              child: Text(action, style: const TextStyle(color: AppColors.accentText))),
+              child: Text(action, style: TextStyle(color: context.cAccentText))),
         ]));
   }
 
@@ -272,8 +273,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
             duration: const Duration(milliseconds: 300),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.surface1, borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _bubbleRunning ? AppColors.accentDim : AppColors.borderHairline)),
+              color: context.cSurface1, borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: _bubbleRunning ? context.cAccentDim : context.cBorder)),
             child: Column(children: [
               Row(children: [
                 ClipRRect(
@@ -284,27 +285,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
                   const Text('Loadstash launcher', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                   Text(_bubbleRunning ? 'On · bubble active when typing' : 'Off',
                     style: TextStyle(fontSize: 12,
-                        color: _bubbleRunning ? AppColors.confirm : AppColors.textTertiary, height: 1.3)),
+                        color: _bubbleRunning ? AppColors.confirm : context.cText3, height: 1.3)),
                 ])),
                 _ToggleSwitch(value: _bubbleRunning,
                     onChanged: _togglingBubble ? null : _onBubbleToggle),
               ]),
-              const Divider(height: 28, color: AppColors.borderHairline),
+              Divider(height: 28, color: context.cBorder),
               Row(children: [
                 Expanded(child: Text(
                   _bubbleRunning
                     ? 'Accessibility and Display-over-apps granted'
                     : 'Needs Accessibility + Display over apps',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary))),
+                  style: TextStyle(fontSize: 12, color: context.cText2))),
               ]),
             ])),
           const SizedBox(height: 8),
           Row(children: [
             Icon(Icons.shield_outlined, size: 15, color: AppColors.confirm),
             const SizedBox(width: 7),
-            const Expanded(child: Text(
+            Expanded(child: Text(
               'Local-first. Everything stays on this device — Loadstash reads nothing and sends nothing.',
-              style: TextStyle(fontSize: 12, color: AppColors.textTertiary, height: 1.5))),
+              style: TextStyle(fontSize: 12, color: context.cText3, height: 1.5))),
           ]),
           const SizedBox(height: 20),
 
@@ -331,13 +332,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
               right: const _Badge(label: 'Export'),
               onTap: _onExport),
             _SettingsRow(icon: Icons.tag, title: 'Manage tags', desc: 'Search tags and model tags',
-              right: const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+              right: Icon(Icons.chevron_right, size: 18, color: context.cText3),
               onTap: () => context.push('/tags')),
             _SettingsRow(
               icon: Icons.folder_outlined,
               title: 'Quick add location',
               desc: _quickAddPath.isEmpty ? 'Library (root)' : _quickAddPath.join(' › '),
-              right: const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+              right: Icon(Icons.chevron_right, size: 18, color: context.cText3),
               onTap: _pickQuickAddLocation,
             ),
           ]),
@@ -355,8 +356,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
           ]),
           const SizedBox(height: 24),
 
-          const Center(child: Text('Loadstash v1.0 · made for Android',
-              style: TextStyle(fontSize: 11.5, color: AppColors.textTertiary))),
+          Center(child: Text('Loadstash v1.0 · made for Android',
+              style: TextStyle(fontSize: 11.5, color: context.cText3))),
         ])),
         _buildBottomNav(context),
       ]),
@@ -366,9 +367,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
 
   Widget _buildBottomNav(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(26, 8, 26, 6),
-    decoration: const BoxDecoration(
-      color: AppColors.bgBase,
-      border: Border(top: BorderSide(color: AppColors.borderHairline))),
+    decoration: BoxDecoration(
+      color: context.cBgBase,
+      border: Border(top: BorderSide(color: context.cBorder))),
     child: Row(children: [
       _NavItem(icon: Icons.book_outlined, label: 'Library', active: false, onTap: () => context.go('/')),
       const Spacer(),
@@ -376,8 +377,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with WidgetsBin
         onTap: () => context.push('/editor'),
         child: Container(width: 52, height: 52, margin: const EdgeInsets.only(bottom: 22),
           decoration: BoxDecoration(
-            color: AppColors.accent, borderRadius: BorderRadius.circular(17),
-            boxShadow: [BoxShadow(color: AppColors.accent.withOpacity(0.6), blurRadius: 22, offset: const Offset(0, 8))]),
+            color: context.cAccent, borderRadius: BorderRadius.circular(17),
+            boxShadow: [BoxShadow(color: context.cAccent.withOpacity(0.6), blurRadius: 22, offset: const Offset(0, 8))]),
           child: const Icon(Icons.add, color: Colors.white, size: 26))),
       const Spacer(),
       _NavItem(icon: Icons.settings_outlined, label: 'Settings', active: true, onTap: () {}),
@@ -389,8 +390,8 @@ class _SectionLabel extends StatelessWidget {
   final String text;
   @override
   Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(bottom: 8),
-    child: Text(text.toUpperCase(), style: const TextStyle(
-      fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: AppColors.textTertiary)));
+    child: Text(text.toUpperCase(), style: TextStyle(
+      fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: context.cText3)));
 }
 
 class _SettingsCard extends StatelessWidget {
@@ -398,12 +399,12 @@ class _SettingsCard extends StatelessWidget {
   final List<Widget> children;
   @override
   Widget build(BuildContext context) => Container(
-    decoration: BoxDecoration(color: AppColors.surface1, borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppColors.borderHairline)),
+    decoration: BoxDecoration(color: context.cSurface1, borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: context.cBorder)),
     child: Column(children: [
       for (var i = 0; i < children.length; i++) ...[
         children[i],
-        if (i < children.length - 1) const Divider(height: 1, indent: 14, endIndent: 14, color: AppColors.borderHairline),
+        if (i < children.length - 1) Divider(height: 1, indent: 14, endIndent: 14, color: context.cBorder),
       ]]));
 }
 
@@ -421,12 +422,12 @@ class _SettingsRow extends StatelessWidget {
       child: Container(color: Colors.transparent, padding: const EdgeInsets.all(14),
         child: Row(children: [
           Container(width: 34, height: 34,
-            decoration: BoxDecoration(color: const Color(0x0DFFFFFF), borderRadius: BorderRadius.circular(9)),
-            child: Icon(icon, size: 18, color: AppColors.textSecondary)),
+            decoration: BoxDecoration(color: context.cIconBg, borderRadius: BorderRadius.circular(9)),
+            child: Icon(icon, size: 18, color: context.cText2)),
           const SizedBox(width: 13),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
-            if (desc != null) Text(desc!, style: const TextStyle(fontSize: 11.5, color: AppColors.textTertiary, height: 1.4)),
+            Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: context.cText1)),
+            if (desc != null) Text(desc!, style: TextStyle(fontSize: 11.5, color: context.cText3, height: 1.4)),
           ])),
           if (right != null) ...[const SizedBox(width: 8), right!],
         ]))));
@@ -440,11 +441,11 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
     decoration: BoxDecoration(
-      color: accent ? AppColors.accentTint : Colors.transparent,
+      color: accent ? context.cAccentTint : Colors.transparent,
       borderRadius: BorderRadius.circular(999),
-      border: Border.all(color: accent ? AppColors.accentDim : AppColors.borderHairline)),
+      border: Border.all(color: accent ? context.cAccentDim : context.cBorder)),
     child: Text(label, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
-        color: accent ? AppColors.accentText : AppColors.textTertiary)));
+        color: accent ? context.cAccentText : context.cText3)));
 }
 
 class _ThemeToggle extends StatelessWidget {
@@ -454,22 +455,22 @@ class _ThemeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(3),
-    decoration: BoxDecoration(color: AppColors.bgBase, borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: AppColors.borderHairline)),
+    decoration: BoxDecoration(color: context.cBgBase, borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: context.cBorder)),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
       for (final t in [('light', Icons.light_mode_outlined), ('dark', Icons.dark_mode_outlined)])
         GestureDetector(onTap: () => onChanged(t.$1),
           child: AnimatedContainer(duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: value == t.$1 ? AppColors.accentTint : Colors.transparent,
+              color: value == t.$1 ? context.cAccentTint : Colors.transparent,
               borderRadius: BorderRadius.circular(7)),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(t.$2, size: 14, color: value == t.$1 ? AppColors.accentText : AppColors.textTertiary),
+              Icon(t.$2, size: 14, color: value == t.$1 ? context.cAccentText : context.cText3),
               const SizedBox(width: 5),
               Text(t.$1[0].toUpperCase() + t.$1.substring(1),
                 style: TextStyle(fontSize: 11.5,
-                  color: value == t.$1 ? AppColors.textPrimary : AppColors.textTertiary,
+                  color: value == t.$1 ? context.cText1 : context.cText3,
                   fontWeight: FontWeight.w500)),
             ]))),
     ]));
@@ -486,9 +487,9 @@ class _ToggleSwitch extends StatelessWidget {
       duration: const Duration(milliseconds: 220), curve: kSpring,
       width: 46, height: 27,
       decoration: BoxDecoration(
-        color: value ? AppColors.accent : const Color(0x14FFFFFF),
+        color: value ? context.cAccent : context.cToggleBgOff,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: value ? AppColors.accentDim : AppColors.borderHairline)),
+        border: Border.all(color: value ? context.cAccentDim : context.cBorder)),
       child: Padding(padding: const EdgeInsets.all(2),
         child: AnimatedAlign(
           duration: const Duration(milliseconds: 220), curve: kSpring,
@@ -504,10 +505,10 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(onTap: onTap,
     child: Column(mainAxisSize: MainAxisSize.min, children: [
-      Icon(icon, size: 22, color: active ? AppColors.accentText : AppColors.textTertiary),
+      Icon(icon, size: 22, color: active ? context.cAccentText : context.cText3),
       const SizedBox(height: 4),
       Text(label, style: TextStyle(fontSize: 10.5,
         fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-        color: active ? AppColors.accentText : AppColors.textTertiary)),
+        color: active ? context.cAccentText : context.cText3)),
     ]));
 }

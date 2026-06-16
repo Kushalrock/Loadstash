@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_context_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/database/app_database.dart';
 
@@ -38,9 +38,9 @@ class _PinnedCard extends StatelessWidget {
         width: 210,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface1,
+          color: context.cSurface1,
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: AppColors.borderHairline),
+          border: Border.all(color: context.cBorder),
         ),
         child: Stack(
           children: [
@@ -58,26 +58,39 @@ class _PinnedCard extends StatelessWidget {
                   child: ClipRect(
                     child: Text(
                       prompt.body.replaceAll(RegExp(r'\{\{(\w+)\}\}'), r'$1').replaceAll('\n', ' '),
-                      style: const TextStyle(fontFamily: 'JetBrainsMono', fontSize: 11, color: AppColors.textSecondary, height: 1.5),
+                      style: TextStyle(fontFamily: 'JetBrainsMono', fontSize: 11, color: context.cText2, height: 1.5),
                       maxLines: 2, overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
                 Row(
-                  children: models.map((m) => Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Container(width: 7, height: 7,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.forModel(m))),
-                  )).toList(),
+                  children: models.map((m) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Container(width: 7, height: 7,
+                        decoration: BoxDecoration(shape: BoxShape.circle,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? _modelColor(m) : _modelColor(m))),
+                    );
+                  }).toList(),
                 ),
               ],
             ),
             Positioned(top: 0, right: 0,
-              child: Icon(Icons.push_pin, size: 14, color: AppColors.accent)),
+              child: Icon(Icons.push_pin, size: 14, color: context.cAccent)),
           ],
         ),
       ),
     );
+  }
+
+  static Color _modelColor(String key) {
+    return switch (key) {
+      'claude'  => const Color(0xFFD97757),
+      'chatgpt' => const Color(0xFF10A37F),
+      'gemini'  => const Color(0xFF5B9CF6),
+      _         => const Color(0xFF8A909C),
+    };
   }
 }

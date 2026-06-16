@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_context_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/prompt_repository.dart';
 
@@ -15,16 +15,16 @@ class FolderRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface1,
+          color: context.cSurface1,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.borderHairline),
+          border: Border.all(color: context.cBorder),
         ),
         child: Row(
           children: [
             Container(
               width: 36, height: 36,
-              decoration: BoxDecoration(color: AppColors.accentTint, borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.folder_outlined, size: 19, color: AppColors.accentText),
+              decoration: BoxDecoration(color: context.cAccentTint, borderRadius: BorderRadius.circular(10)),
+              child: Icon(Icons.folder_outlined, size: 19, color: context.cAccentText),
             ),
             const SizedBox(width: 13),
             Expanded(
@@ -37,7 +37,7 @@ class FolderRow extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+            Icon(Icons.chevron_right, size: 18, color: context.cText3),
           ],
         ),
       ),

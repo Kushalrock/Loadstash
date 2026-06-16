@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_context_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/prompt_repository.dart';
@@ -98,11 +99,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        backgroundColor: AppColors.surface2,
+        backgroundColor: context.cSurface2,
         title: const Text('Delete prompt?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogCtx, false),
-              child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary))),
+              child: Text('Cancel', style: TextStyle(color: context.cText2))),
           TextButton(onPressed: () => Navigator.pop(dialogCtx, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red))),
         ],
@@ -125,15 +126,15 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.accent)));
+    if (_loading) return Scaffold(body: Center(child: CircularProgressIndicator(color: context.cAccent)));
     final allAsync = ref.watch(promptsStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.bgBase, elevation: 0,
+        backgroundColor: context.cBgBase, elevation: 0,
         leading: TextButton(
           onPressed: () => context.pop(),
-          child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary, fontSize: 14))),
+          child: Text('Cancel', style: TextStyle(color: context.cText2, fontSize: 14))),
         leadingWidth: 80,
         title: Text(_existingId == null ? 'New prompt' : 'Edit prompt', style: AppTypography.label),
         actions: [
@@ -141,7 +142,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: _delete),
           TextButton(
             onPressed: _save,
-            child: const Text('Save', style: TextStyle(color: AppColors.accentText, fontWeight: FontWeight.w600, fontSize: 14))),
+            child: Text('Save', style: TextStyle(color: context.cAccentText, fontWeight: FontWeight.w600, fontSize: 14))),
         ],
       ),
       body: Stack(children: [
@@ -151,7 +152,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             decoration: const InputDecoration(hintText: 'Name your prompt', labelText: 'Title'))),
           _Field('Prompt', TextField(
             controller: _bodyCtrl,
-            style: const TextStyle(fontFamily: 'JetBrainsMono', fontSize: 13, color: AppColors.textPrimary, height: 1.65),
+            style: TextStyle(fontFamily: 'JetBrainsMono', fontSize: 13, color: context.cText1, height: 1.65),
             maxLines: 8,
             decoration: const InputDecoration(
               hintText: 'Write your prompt. Wrap variables in {{braces}}.',
@@ -172,19 +173,19 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: AppColors.surface1, borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: AppColors.borderHairline)),
+                color: context.cSurface1, borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: context.cBorder)),
               child: Row(children: [
                 Container(width: 34, height: 34,
-                  decoration: BoxDecoration(color: AppColors.accentTint, borderRadius: BorderRadius.circular(9)),
-                  child: const Icon(Icons.folder_outlined, size: 17, color: AppColors.accentText)),
+                  decoration: BoxDecoration(color: context.cAccentTint, borderRadius: BorderRadius.circular(9)),
+                  child: Icon(Icons.folder_outlined, size: 17, color: context.cAccentText)),
                 const SizedBox(width: 11),
                 Expanded(child: _path.isEmpty
-                  ? const Text('Library (root)', style: TextStyle(fontSize: 13.5, color: AppColors.textSecondary))
+                  ? Text('Library (root)', style: TextStyle(fontSize: 13.5, color: context.cText2))
                   : Text(['Library', ..._path].join(' › '),
-                      style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                      style: TextStyle(fontSize: 12.5, color: context.cText2, fontWeight: FontWeight.w500),
                       overflow: TextOverflow.ellipsis)),
-                const Icon(Icons.chevron_right, size: 18, color: AppColors.textTertiary),
+                Icon(Icons.chevron_right, size: 18, color: context.cText3),
               ]),
             ),
           ),
@@ -204,13 +205,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 decoration: BoxDecoration(
                   color: selected ? color.withOpacity(0.13) : Colors.transparent,
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: selected ? color.withOpacity(0.47) : AppColors.borderHairline)),
+                  border: Border.all(color: selected ? color.withOpacity(0.47) : context.cBorder)),
                 child: Row(mainAxisSize: MainAxisSize.min, children: [
                   Container(width: 8, height: 8, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
                   const SizedBox(width: 6),
                   Text(label, style: TextStyle(fontSize: 12.5,
-                      color: selected ? AppColors.textPrimary : AppColors.textSecondary, fontWeight: FontWeight.w500)),
-                  if (selected) ...[const SizedBox(width: 5), const Icon(Icons.check, size: 13, color: AppColors.textPrimary)],
+                      color: selected ? context.cText1 : context.cText2, fontWeight: FontWeight.w500)),
+                  if (selected) ...[const SizedBox(width: 5), Icon(Icons.check, size: 13, color: context.cText1)],
                 ])));
           }).toList()),
           const SizedBox(height: 20),
@@ -225,13 +226,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(10, 3, 8, 3),
                   decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0x33FFFFFF)),
+                    border: Border.all(color: context.cTagBorder),
                     borderRadius: BorderRadius.circular(999)),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
-                    const Text('#', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
-                    Text(t, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                    Text('#', style: TextStyle(fontSize: 11, color: context.cText3)),
+                    Text(t, style: TextStyle(fontSize: 11, color: context.cText2, fontWeight: FontWeight.w500)),
                     const SizedBox(width: 5),
-                    const Icon(Icons.close, size: 12, color: AppColors.textTertiary),
+                    Icon(Icons.close, size: 12, color: context.cText3),
                   ]),
                 ))).toList()),
             const SizedBox(height: 10),
@@ -239,7 +240,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           Row(children: [
             Expanded(child: TextField(
               controller: _newTagCtrl,
-              style: const TextStyle(fontSize: 13.5, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: 13.5, color: context.cText1),
               decoration: const InputDecoration(hintText: 'add a search tag'))),
             const SizedBox(width: 8),
             GestureDetector(
@@ -252,12 +253,12 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               child: Container(
                 height: 42, padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.surface1, borderRadius: BorderRadius.circular(11),
-                  border: Border.all(color: AppColors.borderHairline)),
-                child: const Row(children: [
-                  Icon(Icons.add, size: 15, color: AppColors.textSecondary),
-                  SizedBox(width: 4),
-                  Text('Add', style: TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+                  color: context.cSurface1, borderRadius: BorderRadius.circular(11),
+                  border: Border.all(color: context.cBorder)),
+                child: Row(children: [
+                  Icon(Icons.add, size: 15, color: context.cText2),
+                  const SizedBox(width: 4),
+                  Text('Add', style: TextStyle(fontSize: 13, color: context.cText1, fontWeight: FontWeight.w500)),
                 ]))),
           ]),
           const SizedBox(height: 20),
@@ -265,24 +266,24 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           // Pin
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-            decoration: BoxDecoration(color: AppColors.surface1, borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: AppColors.borderHairline)),
+            decoration: BoxDecoration(color: context.cSurface1, borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: context.cBorder)),
             child: SwitchListTile(
               title: Text('Pinned', style: AppTypography.label),
               subtitle: Text('Always shows first in overlay', style: AppTypography.bodySmall),
               value: _pinned, onChanged: (v) => setState(() => _pinned = v),
-              activeColor: AppColors.accent, contentPadding: EdgeInsets.zero)),
+              activeColor: context.cAccent, contentPadding: EdgeInsets.zero)),
           const SizedBox(height: 80),
         ]),
 
         // Bottom save button
         Positioned(left: 0, right: 0, bottom: 0, child: Container(
           padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
-          color: AppColors.bgBase,
+          color: context.cBgBase,
           child: FilledButton(
             onPressed: _save,
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.accent,
+              backgroundColor: context.cAccent,
               padding: const EdgeInsets.symmetric(vertical: 13),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -303,14 +304,14 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 child: Align(alignment: Alignment.bottomCenter,
                   child: GestureDetector(onTap: () {},
                     child: Container(
-                      decoration: const BoxDecoration(
-                        color: AppColors.surface2,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                        border: Border(top: BorderSide(color: AppColors.borderHairline))),
+                      decoration: BoxDecoration(
+                        color: context.cSurface2,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                        border: Border(top: BorderSide(color: context.cBorder))),
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        const Padding(padding: EdgeInsets.only(top: 10), child: Center(child: SizedBox(width: 38, height: 4.5,
-                          child: DecoratedBox(decoration: BoxDecoration(color: Color(0x2EFFFFFF),
-                              borderRadius: BorderRadius.all(Radius.circular(999))))))),
+                        Padding(padding: const EdgeInsets.only(top: 10), child: Center(child: SizedBox(width: 38, height: 4.5,
+                          child: DecoratedBox(decoration: BoxDecoration(color: context.cSheetHandle,
+                              borderRadius: const BorderRadius.all(Radius.circular(999))))))),
                         FolderPickerSheet(
                           allPrompts: all, currentPath: _path,
                           onPick: (p) => setState(() { _path = p; _showFolderPicker = false; })),
@@ -330,7 +331,7 @@ class _SectionLabel extends StatelessWidget {
   final String text;
   @override
   Widget build(BuildContext context) => Text(text.toUpperCase(),
-    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: AppColors.textTertiary));
+    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: context.cText3));
 }
 
 class _Field extends StatelessWidget {

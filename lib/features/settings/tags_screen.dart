@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_context_colors.dart';
 import '../../services/model_tag_service.dart';
 import 'widgets/model_tag_editor_sheet.dart';
 
@@ -35,14 +34,13 @@ class _TagsScreenState extends State<TagsScreen> {
     final tag = await showModalBottomSheet<ModelTag>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface2,
+      backgroundColor: context.cSurface2,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => const ModelTagEditorSheet(),
     );
     if (tag == null) return;
-    final updated = [..._modelTags, tag];
-    await ModelTagService.save(updated);
+    await ModelTagService.save([..._modelTags, tag]);
     if (mounted) setState(() => _modelTags = List.of(ModelTagService.all));
   }
 
@@ -50,7 +48,7 @@ class _TagsScreenState extends State<TagsScreen> {
     final tag = await showModalBottomSheet<ModelTag>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.surface2,
+      backgroundColor: context.cSurface2,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => ModelTagEditorSheet(existing: _modelTags[index]),
@@ -67,49 +65,47 @@ class _TagsScreenState extends State<TagsScreen> {
     await ModelTagService.save(updated);
     if (!mounted) return;
     setState(() => _modelTags = List.of(ModelTagService.all));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${tag.label} deleted'),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () async {
-            final restored = List.of(ModelTagService.all)..insert(index, tag);
-            await ModelTagService.save(restored);
-            if (mounted) setState(() => _modelTags = List.of(ModelTagService.all));
-          },
-        ),
-        duration: const Duration(seconds: 3),
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('${tag.label} deleted'),
+      action: SnackBarAction(
+        label: 'Undo',
+        onPressed: () async {
+          final restored = List.of(ModelTagService.all)..insert(index, tag);
+          await ModelTagService.save(restored);
+          if (mounted) setState(() => _modelTags = List.of(ModelTagService.all));
+        },
       ),
-    );
+      duration: const Duration(seconds: 3),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.bgBase, elevation: 0,
+        backgroundColor: context.cBgBase, elevation: 0,
         leading: TextButton.icon(
           onPressed: () => context.pop(),
           icon: const Icon(Icons.chevron_left, size: 20),
           label: const Text('Settings'),
-          style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary)),
+          style: TextButton.styleFrom(foregroundColor: context.cText2)),
         leadingWidth: 110),
       body: ListView(padding: const EdgeInsets.fromLTRB(18, 4, 18, 24), children: [
         const Text('Tags', style: TextStyle(fontSize: 23, fontWeight: FontWeight.w600, letterSpacing: -0.46)),
         const SizedBox(height: 4),
-        const Text('Two ways to organise — search tags you create, and model tags for where a prompt runs.',
-            style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5)),
+        Text('Two ways to organise — search tags you create, and model tags for where a prompt runs.',
+            style: TextStyle(fontSize: 13, color: context.cText2, height: 1.5)),
         const SizedBox(height: 22),
 
         // ── Search tags ─────────────────────────────────────
-        const Row(children: [
-          Icon(Icons.tag, size: 16, color: AppColors.textSecondary),
-          SizedBox(width: 8),
-          Text('Search tags', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        Row(children: [
+          Icon(Icons.tag, size: 16, color: context.cText2),
+          const SizedBox(width: 8),
+          const Text('Search tags', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         ]),
         const SizedBox(height: 4),
-        const Text('Freeform, made by you — for organising and finding prompts.',
-            style: TextStyle(fontSize: 12, color: AppColors.textTertiary, height: 1.5)),
+        Text('Freeform, made by you — for organising and finding prompts.',
+            style: TextStyle(fontSize: 12, color: context.cText3, height: 1.5)),
         const SizedBox(height: 13),
         Wrap(spacing: 8, runSpacing: 8, children: [
           ..._searchTags.map((t) => GestureDetector(
@@ -117,31 +113,29 @@ class _TagsScreenState extends State<TagsScreen> {
             child: Container(
               padding: const EdgeInsets.fromLTRB(10, 4, 8, 4),
               decoration: BoxDecoration(
-                border: Border.all(color: const Color(0x33FFFFFF)),
+                border: Border.all(color: context.cTagBorder),
                 borderRadius: BorderRadius.circular(999)),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
-                const Text('#', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
-                Text(t, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                Text('#', style: TextStyle(fontSize: 11, color: context.cText3)),
+                Text(t, style: TextStyle(fontSize: 11, color: context.cText2, fontWeight: FontWeight.w500)),
                 const SizedBox(width: 5),
-                const Icon(Icons.close, size: 12, color: AppColors.textTertiary),
+                Icon(Icons.close, size: 12, color: context.cText3),
               ])))),
           _addingTag
             ? SizedBox(width: 120, height: 28,
                 child: TextField(
                   controller: _newTagCtrl, autofocus: true,
-                  style: const TextStyle(fontSize: 11, color: AppColors.textPrimary),
+                  style: TextStyle(fontSize: 11, color: context.cText1),
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     isDense: true,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(999),
-                        borderSide: const BorderSide(color: AppColors.accentDim)),
+                        borderSide: BorderSide(color: context.cAccentDim)),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(999),
-                        borderSide: const BorderSide(color: AppColors.accent))),
+                        borderSide: BorderSide(color: context.cAccent))),
                   onSubmitted: (v) {
                     final tag = v.trim();
-                    if (tag.isNotEmpty && !_searchTags.contains(tag)) {
-                      setState(() { _searchTags.add(tag); });
-                    }
+                    if (tag.isNotEmpty && !_searchTags.contains(tag)) setState(() => _searchTags.add(tag));
                     setState(() { _addingTag = false; _newTagCtrl.clear(); });
                   }))
             : GestureDetector(
@@ -150,14 +144,14 @@ class _TagsScreenState extends State<TagsScreen> {
                   padding: const EdgeInsets.fromLTRB(10, 4, 11, 4),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: AppColors.accentDim)),
-                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.add, size: 13, color: AppColors.accentText),
-                    SizedBox(width: 4),
-                    Text('New tag', style: TextStyle(fontSize: 11.5, color: AppColors.accentText, fontWeight: FontWeight.w500)),
+                    border: Border.all(color: context.cAccentDim)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.add, size: 13, color: context.cAccentText),
+                    const SizedBox(width: 4),
+                    Text('New tag', style: TextStyle(fontSize: 11.5, color: context.cAccentText, fontWeight: FontWeight.w500)),
                   ]))),
         ]),
-        const Divider(height: 32, color: AppColors.borderHairline),
+        Divider(height: 32, color: context.cBorder),
 
         // ── Model tags ───────────────────────────────────────
         Row(children: [
@@ -169,8 +163,8 @@ class _TagsScreenState extends State<TagsScreen> {
           const Text('Model tags', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
         ]),
         const SizedBox(height: 4),
-        const Text('Colour-coded by model. Edit or delete any tag, or add your own.',
-            style: TextStyle(fontSize: 12, color: AppColors.textTertiary, height: 1.5)),
+        Text('Colour-coded by model. Edit or delete any tag, or add your own.',
+            style: TextStyle(fontSize: 12, color: context.cText3, height: 1.5)),
         const SizedBox(height: 13),
         ...List.generate(_modelTags.length, (i) {
           final tag = _modelTags[i];
@@ -178,8 +172,8 @@ class _TagsScreenState extends State<TagsScreen> {
             margin: const EdgeInsets.only(bottom: 9),
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
             decoration: BoxDecoration(
-              color: AppColors.surface1, borderRadius: BorderRadius.circular(13),
-              border: Border.all(color: AppColors.borderHairline)),
+              color: context.cSurface1, borderRadius: BorderRadius.circular(13),
+              border: Border.all(color: context.cBorder)),
             child: Row(children: [
               Container(width: 12, height: 12,
                   decoration: BoxDecoration(shape: BoxShape.circle, color: tag.colorValue)),
@@ -187,23 +181,23 @@ class _TagsScreenState extends State<TagsScreen> {
               Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(tag.label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
                 Text(tag.color.toUpperCase(),
-                    style: const TextStyle(fontSize: 11, color: AppColors.textTertiary, fontFamily: 'JetBrainsMono')),
+                    style: TextStyle(fontSize: 11, color: context.cText3, fontFamily: 'JetBrainsMono')),
               ])),
               GestureDetector(
                 onTap: () => _editModelTag(i),
                 child: Container(width: 32, height: 32,
-                  decoration: BoxDecoration(color: AppColors.surface1,
+                  decoration: BoxDecoration(color: context.cSurface1,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.borderHairline)),
-                  child: const Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary))),
+                      border: Border.all(color: context.cBorder)),
+                  child: Icon(Icons.edit_outlined, size: 16, color: context.cText2))),
               const SizedBox(width: 6),
               GestureDetector(
                 onTap: () => _deleteModelTag(i),
                 child: Container(width: 32, height: 32,
-                  decoration: BoxDecoration(color: AppColors.surface1,
+                  decoration: BoxDecoration(color: context.cSurface1,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.borderHairline)),
-                  child: const Icon(Icons.delete_outline, size: 16, color: AppColors.textSecondary))),
+                      border: Border.all(color: context.cBorder)),
+                  child: Icon(Icons.delete_outline, size: 16, color: context.cText2))),
             ]));
         }),
         GestureDetector(
@@ -212,11 +206,11 @@ class _TagsScreenState extends State<TagsScreen> {
             width: double.infinity, padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderHairline)),
-            child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.add, size: 16, color: AppColors.textSecondary),
-              SizedBox(width: 7),
-              Text('Add model tag', style: TextStyle(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+              border: Border.all(color: context.cBorder)),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.add, size: 16, color: context.cText2),
+              const SizedBox(width: 7),
+              Text('Add model tag', style: TextStyle(fontSize: 13, color: context.cText2, fontWeight: FontWeight.w500)),
             ]))),
       ]),
     );

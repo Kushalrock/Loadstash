@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_context_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/database/app_database.dart';
 import '../../data/repositories/prompt_repository.dart';
@@ -25,7 +26,7 @@ class _PromptDetailScreenState extends ConsumerState<PromptDetailScreen> {
   Widget build(BuildContext context) {
     final allAsync = ref.watch(promptsStreamProvider);
     return allAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.accent))),
+      loading: () => Scaffold(body: Center(child: CircularProgressIndicator(color: context.cAccent))),
       error: (e, _) => Scaffold(body: Center(child: Text('$e'))),
       data: (all) {
         final prompt = all.where((p) => p.id == widget.promptId).firstOrNull;
@@ -50,9 +51,9 @@ class _PromptDetailScreenState extends ConsumerState<PromptDetailScreen> {
             child: Row(children: [
               GestureDetector(
                 onTap: () => context.pop(),
-                child: const Row(children: [
-                  Icon(Icons.chevron_left, size: 20, color: AppColors.textSecondary),
-                  Text('Library', style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+                child: Row(children: [
+                  Icon(Icons.chevron_left, size: 20, color: context.cText2),
+                  Text('Library', style: TextStyle(fontSize: 14, color: context.cText2)),
                 ]),
               ),
               const Spacer(),
@@ -61,10 +62,10 @@ class _PromptDetailScreenState extends ConsumerState<PromptDetailScreen> {
                 child: Container(
                   width: 38, height: 38,
                   decoration: BoxDecoration(
-                    color: pinned ? AppColors.accentTint : AppColors.surface1,
+                    color: pinned ? context.cAccentTint : context.cSurface1,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: pinned ? AppColors.accentDim : AppColors.borderHairline)),
-                  child: Icon(Icons.push_pin, size: 18, color: pinned ? AppColors.accentText : AppColors.textSecondary)),
+                    border: Border.all(color: pinned ? context.cAccentDim : context.cBorder)),
+                  child: Icon(Icons.push_pin, size: 18, color: pinned ? context.cAccentText : context.cText2)),
               ),
             ]),
           )),
@@ -79,12 +80,12 @@ class _PromptDetailScreenState extends ConsumerState<PromptDetailScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
                   decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.borderHairline),
+                    border: Border.all(color: context.cBorder),
                     borderRadius: BorderRadius.circular(999)),
-                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.folder_outlined, size: 13, color: AppColors.textSecondary),
-                    SizedBox(width: 5),
-                    Text('Move', style: TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(Icons.folder_outlined, size: 13, color: context.cText2),
+                    const SizedBox(width: 5),
+                    Text('Move', style: TextStyle(fontSize: 11.5, color: context.cText2, fontWeight: FontWeight.w500)),
                   ]),
                 ),
               ),
@@ -94,31 +95,31 @@ class _PromptDetailScreenState extends ConsumerState<PromptDetailScreen> {
             const SizedBox(height: 8),
             models.isNotEmpty
               ? Wrap(spacing: 7, children: models.map((m) => _ModelChip(m)).toList())
-              : const Text('No model tags', style: TextStyle(fontSize: 12.5, color: AppColors.textTertiary)),
+              : Text('No model tags', style: TextStyle(fontSize: 12.5, color: context.cText3)),
             const SizedBox(height: 18),
             _Section('Search tags'),
             const SizedBox(height: 8),
             tags.isNotEmpty
               ? Wrap(spacing: 7, children: tags.map((t) => _TagPill(t)).toList())
-              : const Text('No tags', style: TextStyle(fontSize: 12.5, color: AppColors.textTertiary)),
+              : Text('No tags', style: TextStyle(fontSize: 12.5, color: context.cText3)),
             const SizedBox(height: 18),
             _Section('Prompt'),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surface1,
+                color: context.cSurface1,
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: AppColors.borderHairline)),
-              child: Text(prompt.body, style: const TextStyle(
-                  fontFamily: 'JetBrainsMono', fontSize: 13, color: AppColors.textSecondary, height: 1.65))),
+                border: Border.all(color: context.cBorder)),
+              child: Text(prompt.body, style: TextStyle(
+                  fontFamily: 'JetBrainsMono', fontSize: 13, color: context.cText2, height: 1.65))),
             if (varCount > 0) ...[
               const SizedBox(height: 11),
               Row(children: [
-                const Icon(Icons.tune, size: 15, color: AppColors.textTertiary),
+                Icon(Icons.tune, size: 15, color: context.cText3),
                 const SizedBox(width: 8),
                 Text('$varCount variable${varCount == 1 ? '' : 's'} filled in when used',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                    style: TextStyle(fontSize: 12, color: context.cText3)),
               ]),
             ],
             const SizedBox(height: 80),
@@ -128,17 +129,17 @@ class _PromptDetailScreenState extends ConsumerState<PromptDetailScreen> {
         // Bottom action bar
         Positioned(left: 0, right: 0, bottom: 0, child: Container(
           padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
-          decoration: const BoxDecoration(
-            color: AppColors.bgBase,
-            border: Border(top: BorderSide(color: AppColors.borderHairline))),
+          decoration: BoxDecoration(
+            color: context.cBgBase,
+            border: Border(top: BorderSide(color: context.cBorder))),
           child: Row(children: [
             OutlinedButton.icon(
               onPressed: () => context.push('/editor', extra: prompt.id),
               icon: const Icon(Icons.edit_outlined, size: 16),
               label: const Text('Edit'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.borderHairline),
+                foregroundColor: context.cText1,
+                side: BorderSide(color: context.cBorder),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13))),
             const SizedBox(width: 10),
@@ -153,7 +154,7 @@ class _PromptDetailScreenState extends ConsumerState<PromptDetailScreen> {
               icon: const Icon(Icons.copy, size: 16),
               label: const Text('Copy to clipboard'),
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accent,
+                backgroundColor: context.cAccent,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(vertical: 13)))),
           ]),
@@ -167,14 +168,14 @@ class _PromptDetailScreenState extends ConsumerState<PromptDetailScreen> {
               child: Align(alignment: Alignment.bottomCenter,
                 child: GestureDetector(onTap: () {},
                   child: Container(
-                    decoration: const BoxDecoration(
-                      color: AppColors.surface2,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                      border: Border(top: BorderSide(color: AppColors.borderHairline))),
+                    decoration: BoxDecoration(
+                      color: context.cSurface2,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                      border: Border(top: BorderSide(color: context.cBorder))),
                     child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      const Padding(padding: EdgeInsets.only(top: 10), child: Center(child: SizedBox(width: 38, height: 4.5,
-                        child: DecoratedBox(decoration: BoxDecoration(color: Color(0x2EFFFFFF),
-                            borderRadius: BorderRadius.all(Radius.circular(999))))))),
+                      Padding(padding: const EdgeInsets.only(top: 10), child: Center(child: SizedBox(width: 38, height: 4.5,
+                        child: DecoratedBox(decoration: BoxDecoration(color: context.cSheetHandle,
+                            borderRadius: const BorderRadius.all(Radius.circular(999))))))),
                       FolderPickerSheet(
                         allPrompts: all, currentPath: path, title: 'Move to folder',
                         onPick: (newPath) async {
@@ -197,7 +198,7 @@ class _Section extends StatelessWidget {
   final String label;
   @override
   Widget build(BuildContext context) => Text(label.toUpperCase(),
-    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: AppColors.textTertiary));
+    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.06, color: context.cText3));
 }
 
 class _CrumbLine extends StatelessWidget {
@@ -207,8 +208,8 @@ class _CrumbLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Wrap(children: [
     for (var i = 0; i < path.length; i++) ...[
-      if (i > 0) Text(' › ', style: TextStyle(fontSize: size, color: AppColors.textTertiary)),
-      Text(path[i], style: TextStyle(fontSize: size, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+      if (i > 0) Text(' › ', style: TextStyle(fontSize: size, color: context.cText3)),
+      Text(path[i], style: TextStyle(fontSize: size, color: context.cText2, fontWeight: FontWeight.w500)),
     ],
   ]);
 }
@@ -230,7 +231,7 @@ class _ModelChip extends StatelessWidget {
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Container(width: 6, height: 6, decoration: BoxDecoration(shape: BoxShape.circle, color: color)),
         const SizedBox(width: 5),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+        Text(label, style: TextStyle(fontSize: 11, color: context.cText1, fontWeight: FontWeight.w500)),
       ]));
   }
 }
@@ -242,10 +243,10 @@ class _TagPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(10, 3, 10, 3),
     decoration: BoxDecoration(
-      border: Border.all(color: const Color(0x33FFFFFF)),
+      border: Border.all(color: context.cTagBorder),
       borderRadius: BorderRadius.circular(999)),
     child: Row(mainAxisSize: MainAxisSize.min, children: [
-      const Text('#', style: TextStyle(fontSize: 11, color: AppColors.textTertiary)),
-      Text(tag, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
+      Text('#', style: TextStyle(fontSize: 11, color: context.cText3)),
+      Text(tag, style: TextStyle(fontSize: 11, color: context.cText2, fontWeight: FontWeight.w500)),
     ]));
 }

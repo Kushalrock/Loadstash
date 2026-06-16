@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_context_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../services/model_tag_service.dart';
 
@@ -100,26 +100,26 @@ class _ModelTagEditorSheetState extends State<ModelTagEditorSheet> {
               style: AppTypography.screenTitle.copyWith(fontSize: 18)),
           const SizedBox(height: 16),
 
-          const Text('NAME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
-              letterSpacing: 0.06, color: AppColors.textTertiary)),
+          Text('NAME', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+              letterSpacing: 0.06, color: context.cText3)),
           const SizedBox(height: 6),
           TextField(controller: _labelCtrl, style: AppTypography.label,
               decoration: const InputDecoration(hintText: 'e.g. Grok')),
           const SizedBox(height: 14),
 
-          const Text('KEY', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
-              letterSpacing: 0.06, color: AppColors.textTertiary)),
+          Text('KEY', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+              letterSpacing: 0.06, color: context.cText3)),
           const SizedBox(height: 6),
           TextField(
             controller: _keyCtrl,
-            style: const TextStyle(fontFamily: 'JetBrainsMono', fontSize: 13, color: AppColors.textPrimary),
+            style: TextStyle(fontFamily: 'JetBrainsMono', fontSize: 13, color: context.cText1),
             onChanged: (_) => setState(() => _keyError = null),
             decoration: InputDecoration(hintText: 'e.g. grok', errorText: _keyError),
           ),
           const SizedBox(height: 14),
 
-          const Text('COLOUR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
-              letterSpacing: 0.06, color: AppColors.textTertiary)),
+          Text('COLOUR', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600,
+              letterSpacing: 0.06, color: context.cText3)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 10, runSpacing: 10,
@@ -146,11 +146,11 @@ class _ModelTagEditorSheetState extends State<ModelTagEditorSheet> {
                 child: Container(
                   width: 32, height: 32,
                   decoration: BoxDecoration(
-                    color: _showHex ? AppColors.accentTint : AppColors.surface1,
+                    color: _showHex ? context.cAccentTint : context.cSurface1,
                     shape: BoxShape.circle,
                     border: Border.all(
-                        color: _showHex ? AppColors.accentDim : AppColors.borderHairline)),
-                  child: const Icon(Icons.more_horiz, size: 16, color: AppColors.textSecondary)),
+                        color: _showHex ? context.cAccentDim : context.cBorder)),
+                  child: Icon(Icons.more_horiz, size: 16, color: context.cText2)),
               ),
             ],
           ),
@@ -158,11 +158,11 @@ class _ModelTagEditorSheetState extends State<ModelTagEditorSheet> {
             const SizedBox(height: 10),
             TextField(
               controller: _hexCtrl,
-              style: const TextStyle(fontFamily: 'JetBrainsMono', fontSize: 13, color: AppColors.textPrimary),
-              decoration: const InputDecoration(
+              style: TextStyle(fontFamily: 'JetBrainsMono', fontSize: 13, color: context.cText1),
+              decoration: InputDecoration(
                 hintText: 'F43F5E',
                 prefixText: '#',
-                prefixStyle: TextStyle(fontFamily: 'JetBrainsMono', color: AppColors.textTertiary)),
+                prefixStyle: TextStyle(fontFamily: 'JetBrainsMono', color: context.cText3)),
             ),
           ],
           const SizedBox(height: 20),
@@ -171,7 +171,7 @@ class _ModelTagEditorSheetState extends State<ModelTagEditorSheet> {
             child: FilledButton(
               onPressed: _save,
               style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accent,
+                backgroundColor: context.cAccent,
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
               child: Text(widget.existing == null ? 'Add tag' : 'Save changes',
